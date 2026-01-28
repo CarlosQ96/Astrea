@@ -1,0 +1,25 @@
+# Chat response from AI assistant
+# Protocol class (no database table) for client-server communication
+
+class: ChatResponse
+
+fields:
+  ### The detected intent (create_reminder, list_reminders, etc.)
+  intent: String
+
+  ### Natural language response to show the user
+  response: String
+
+  ### Optional action data (JSON-like structure)
+  ### For create_reminder: {title, dueAt, priority, description}
+  ### For complete/snooze: {reminderId, snoozeDuration}
+  actionType: String?
+  actionTitle: String?
+  actionDueAt: DateTime?
+  actionPriority: int?
+  actionDescription: String?
+  actionReminderId: int?
+  actionSnoozeDuration: String?
+
+  ### Optional reminder object if one was created/modified
+  reminder: Reminder?, relation

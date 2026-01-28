@@ -1,0 +1,29 @@
+# User settings for Astrea - AI Reminder App
+# Stores user preferences for notifications, voice, and timezone
+
+class: UserSettings
+table: user_settings
+
+fields:
+  ### The user ID (UUID string) - unique per user
+  userId: String
+
+  ### Default snooze duration in minutes
+  defaultSnoozeMinutes: int
+
+  ### Quiet hours start time (e.g., "22:00")
+  quietHoursStart: String?
+
+  ### Quiet hours end time (e.g., "07:00")
+  quietHoursEnd: String?
+
+  ### Whether voice input is enabled
+  voiceEnabled: bool
+
+  ### User's timezone (e.g., "America/New_York")
+  timezone: String
+
+indexes:
+  user_settings_user_idx:
+    fields: userId
+    unique: true

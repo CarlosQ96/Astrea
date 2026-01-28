@@ -1,0 +1,50 @@
+# Reminder model for Astrea - AI Reminder App
+# Stores user reminders with RAG embeddings for intelligent search
+
+class: Reminder
+table: reminders
+
+fields:
+  ### The user who owns this reminder (UUID string)
+  userId: String
+
+  ### The reminder title/summary
+  title: String
+
+  ### Optional detailed description
+  description: String?
+
+  ### Due date/time stored in UTC
+  dueAtUtc: DateTime
+
+  ### Original timezone when reminder was created (for DST handling)
+  originalTimezone: String
+
+  ### RRULE format for recurring reminders (optional)
+  repeatRule: String?
+
+  ### If snoozed, when to remind again
+  snoozedUntil: DateTime?
+
+  ### Whether the reminder has been completed
+  isCompleted: bool
+
+  ### Priority level: 1=low, 2=medium, 3=high
+  priority: int
+
+  ### Revision number for sync conflict resolution (last-write-wins)
+  revision: int
+
+  ### When the reminder was created
+  createdAt: DateTime
+
+  ### When the reminder was last updated
+  updatedAt: DateTime
+
+indexes:
+  reminder_user_idx:
+    fields: userId
+  reminder_due_idx:
+    fields: dueAtUtc
+  reminder_completed_idx:
+    fields: isCompleted
