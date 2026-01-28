@@ -11,14 +11,14 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'greetings/greeting.dart' as _i2;
+import 'chat/chat_response.dart' as _i2;
 import 'reminders/reminder.dart' as _i3;
 import 'settings/user_settings.dart' as _i4;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i5;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i6;
-export 'greetings/greeting.dart';
+export 'chat/chat_response.dart';
 export 'reminders/reminder.dart';
 export 'settings/user_settings.dart';
 export 'client.dart';
@@ -57,8 +57,8 @@ class Protocol extends _i1.SerializationManager {
       }
     }
 
-    if (t == _i2.Greeting) {
-      return _i2.Greeting.fromJson(data) as T;
+    if (t == _i2.ChatResponse) {
+      return _i2.ChatResponse.fromJson(data) as T;
     }
     if (t == _i3.Reminder) {
       return _i3.Reminder.fromJson(data) as T;
@@ -66,8 +66,8 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i4.UserSettings) {
       return _i4.UserSettings.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i2.Greeting?>()) {
-      return (data != null ? _i2.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i2.ChatResponse?>()) {
+      return (data != null ? _i2.ChatResponse.fromJson(data) : null) as T;
     }
     if (t == _i1.getType<_i3.Reminder?>()) {
       return (data != null ? _i3.Reminder.fromJson(data) : null) as T;
@@ -86,7 +86,7 @@ class Protocol extends _i1.SerializationManager {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i2.Greeting => 'Greeting',
+      _i2.ChatResponse => 'ChatResponse',
       _i3.Reminder => 'Reminder',
       _i4.UserSettings => 'UserSettings',
       _ => null,
@@ -103,8 +103,8 @@ class Protocol extends _i1.SerializationManager {
     }
 
     switch (data) {
-      case _i2.Greeting():
-        return 'Greeting';
+      case _i2.ChatResponse():
+        return 'ChatResponse';
       case _i3.Reminder():
         return 'Reminder';
       case _i4.UserSettings():
@@ -127,8 +127,8 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_i2.Greeting>(data['data']);
+    if (dataClassName == 'ChatResponse') {
+      return deserialize<_i2.ChatResponse>(data['data']);
     }
     if (dataClassName == 'Reminder') {
       return deserialize<_i3.Reminder>(data['data']);

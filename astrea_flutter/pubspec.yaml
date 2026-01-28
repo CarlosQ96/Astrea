@@ -60,6 +60,8 @@ flutter:
   # https://flutter.dev/assets-and-images/#from-packages
   assets:
     - assets/config.json
+    - assets/config.development.json
+    - assets/config.production.json
 dependency_overrides:
   flutter_secure_storage: ^10.0.0
 
