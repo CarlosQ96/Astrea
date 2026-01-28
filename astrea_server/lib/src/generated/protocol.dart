@@ -16,10 +16,10 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'greetings/greeting.dart' as _i5;
+import 'chat/chat_response.dart' as _i5;
 import 'reminders/reminder.dart' as _i6;
 import 'settings/user_settings.dart' as _i7;
-export 'greetings/greeting.dart';
+export 'chat/chat_response.dart';
 export 'reminders/reminder.dart';
 export 'settings/user_settings.dart';
 
@@ -46,9 +46,9 @@ class Protocol extends _i1.SerializationManagerServer {
         ),
         _i2.ColumnDefinition(
           name: 'userId',
-          columnType: _i2.ColumnType.text,
+          columnType: _i2.ColumnType.uuid,
           isNullable: false,
-          dartType: 'String',
+          dartType: 'UuidValue',
         ),
         _i2.ColumnDefinition(
           name: 'title',
@@ -81,7 +81,7 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
         ),
         _i2.ColumnDefinition(
-          name: 'snoozedUntil',
+          name: 'snoozedUntilUtc',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,
           dartType: 'DateTime?',
@@ -91,30 +91,35 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
+          columnDefault: 'false',
         ),
         _i2.ColumnDefinition(
           name: 'priority',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+          columnDefault: '2',
         ),
         _i2.ColumnDefinition(
           name: 'revision',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+          columnDefault: '1',
         ),
         _i2.ColumnDefinition(
           name: 'createdAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
         ),
         _i2.ColumnDefinition(
           name: 'updatedAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
           dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
         ),
       ],
       foreignKeys: [],
@@ -146,9 +151,17 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: false,
         ),
         _i2.IndexDefinition(
-          indexName: 'reminder_due_idx',
+          indexName: 'reminder_user_active_idx',
           tableSpace: null,
           elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'isCompleted',
+            ),
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
               definition: 'dueAtUtc',
@@ -159,12 +172,12 @@ class Protocol extends _i1.SerializationManagerServer {
           isPrimary: false,
         ),
         _i2.IndexDefinition(
-          indexName: 'reminder_completed_idx',
+          indexName: 'reminder_due_idx',
           tableSpace: null,
           elements: [
             _i2.IndexElementDefinition(
               type: _i2.IndexElementDefinitionType.column,
-              definition: 'isCompleted',
+              definition: 'dueAtUtc',
             ),
           ],
           type: 'btree',
@@ -189,15 +202,16 @@ class Protocol extends _i1.SerializationManagerServer {
         ),
         _i2.ColumnDefinition(
           name: 'userId',
-          columnType: _i2.ColumnType.text,
+          columnType: _i2.ColumnType.uuid,
           isNullable: false,
-          dartType: 'String',
+          dartType: 'UuidValue',
         ),
         _i2.ColumnDefinition(
           name: 'defaultSnoozeMinutes',
           columnType: _i2.ColumnType.bigint,
           isNullable: false,
           dartType: 'int',
+          columnDefault: '15',
         ),
         _i2.ColumnDefinition(
           name: 'quietHoursStart',
@@ -216,12 +230,14 @@ class Protocol extends _i1.SerializationManagerServer {
           columnType: _i2.ColumnType.boolean,
           isNullable: false,
           dartType: 'bool',
+          columnDefault: 'true',
         ),
         _i2.ColumnDefinition(
           name: 'timezone',
           columnType: _i2.ColumnType.text,
           isNullable: false,
           dartType: 'String',
+          columnDefault: '\'UTC\'::text',
         ),
       ],
       foreignKeys: [],
@@ -287,8 +303,8 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
 
-    if (t == _i5.Greeting) {
-      return _i5.Greeting.fromJson(data) as T;
+    if (t == _i5.ChatResponse) {
+      return _i5.ChatResponse.fromJson(data) as T;
     }
     if (t == _i6.Reminder) {
       return _i6.Reminder.fromJson(data) as T;
@@ -296,8 +312,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i7.UserSettings) {
       return _i7.UserSettings.fromJson(data) as T;
     }
-    if (t == _i1.getType<_i5.Greeting?>()) {
-      return (data != null ? _i5.Greeting.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i5.ChatResponse?>()) {
+      return (data != null ? _i5.ChatResponse.fromJson(data) : null) as T;
     }
     if (t == _i1.getType<_i6.Reminder?>()) {
       return (data != null ? _i6.Reminder.fromJson(data) : null) as T;
@@ -319,7 +335,7 @@ class Protocol extends _i1.SerializationManagerServer {
 
   static String? getClassNameForType(Type type) {
     return switch (type) {
-      _i5.Greeting => 'Greeting',
+      _i5.ChatResponse => 'ChatResponse',
       _i6.Reminder => 'Reminder',
       _i7.UserSettings => 'UserSettings',
       _ => null,
@@ -336,8 +352,8 @@ class Protocol extends _i1.SerializationManagerServer {
     }
 
     switch (data) {
-      case _i5.Greeting():
-        return 'Greeting';
+      case _i5.ChatResponse():
+        return 'ChatResponse';
       case _i6.Reminder():
         return 'Reminder';
       case _i7.UserSettings():
@@ -364,8 +380,8 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName is! String) {
       return super.deserializeByClassName(data);
     }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_i5.Greeting>(data['data']);
+    if (dataClassName == 'ChatResponse') {
+      return deserialize<_i5.ChatResponse>(data['data']);
     }
     if (dataClassName == 'Reminder') {
       return deserialize<_i6.Reminder>(data['data']);

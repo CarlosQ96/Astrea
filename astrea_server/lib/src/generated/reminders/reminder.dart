@@ -22,34 +22,38 @@ abstract class Reminder
     required this.dueAtUtc,
     required this.originalTimezone,
     this.repeatRule,
-    this.snoozedUntil,
-    required this.isCompleted,
-    required this.priority,
-    required this.revision,
-    required this.createdAt,
-    required this.updatedAt,
-  });
+    this.snoozedUntilUtc,
+    bool? isCompleted,
+    int? priority,
+    int? revision,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) : isCompleted = isCompleted ?? false,
+       priority = priority ?? 2,
+       revision = revision ?? 1,
+       createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? DateTime.now();
 
   factory Reminder({
     int? id,
-    required String userId,
+    required _i1.UuidValue userId,
     required String title,
     String? description,
     required DateTime dueAtUtc,
     required String originalTimezone,
     String? repeatRule,
-    DateTime? snoozedUntil,
-    required bool isCompleted,
-    required int priority,
-    required int revision,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    DateTime? snoozedUntilUtc,
+    bool? isCompleted,
+    int? priority,
+    int? revision,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) = _ReminderImpl;
 
   factory Reminder.fromJson(Map<String, dynamic> jsonSerialization) {
     return Reminder(
       id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as String,
+      userId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['userId']),
       title: jsonSerialization['title'] as String,
       description: jsonSerialization['description'] as String?,
       dueAtUtc: _i1.DateTimeJsonExtension.fromJson(
@@ -57,20 +61,20 @@ abstract class Reminder
       ),
       originalTimezone: jsonSerialization['originalTimezone'] as String,
       repeatRule: jsonSerialization['repeatRule'] as String?,
-      snoozedUntil: jsonSerialization['snoozedUntil'] == null
+      snoozedUntilUtc: jsonSerialization['snoozedUntilUtc'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
-              jsonSerialization['snoozedUntil'],
+              jsonSerialization['snoozedUntilUtc'],
             ),
-      isCompleted: jsonSerialization['isCompleted'] as bool,
-      priority: jsonSerialization['priority'] as int,
-      revision: jsonSerialization['revision'] as int,
-      createdAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['createdAt'],
-      ),
-      updatedAt: _i1.DateTimeJsonExtension.fromJson(
-        jsonSerialization['updatedAt'],
-      ),
+      isCompleted: jsonSerialization['isCompleted'] as bool?,
+      priority: jsonSerialization['priority'] as int?,
+      revision: jsonSerialization['revision'] as int?,
+      createdAt: jsonSerialization['createdAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
+      updatedAt: jsonSerialization['updatedAt'] == null
+          ? null
+          : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['updatedAt']),
     );
   }
 
@@ -81,40 +85,28 @@ abstract class Reminder
   @override
   int? id;
 
-  /// The user who owns this reminder (UUID string)
-  String userId;
+  _i1.UuidValue userId;
 
-  /// The reminder title/summary
   String title;
 
-  /// Optional detailed description
   String? description;
 
-  /// Due date/time stored in UTC
   DateTime dueAtUtc;
 
-  /// Original timezone when reminder was created (for DST handling)
   String originalTimezone;
 
-  /// RRULE format for recurring reminders (optional)
   String? repeatRule;
 
-  /// If snoozed, when to remind again
-  DateTime? snoozedUntil;
+  DateTime? snoozedUntilUtc;
 
-  /// Whether the reminder has been completed
   bool isCompleted;
 
-  /// Priority level: 1=low, 2=medium, 3=high
   int priority;
 
-  /// Revision number for sync conflict resolution (last-write-wins)
   int revision;
 
-  /// When the reminder was created
   DateTime createdAt;
 
-  /// When the reminder was last updated
   DateTime updatedAt;
 
   @override
@@ -125,13 +117,13 @@ abstract class Reminder
   @_i1.useResult
   Reminder copyWith({
     int? id,
-    String? userId,
+    _i1.UuidValue? userId,
     String? title,
     String? description,
     DateTime? dueAtUtc,
     String? originalTimezone,
     String? repeatRule,
-    DateTime? snoozedUntil,
+    DateTime? snoozedUntilUtc,
     bool? isCompleted,
     int? priority,
     int? revision,
@@ -143,13 +135,13 @@ abstract class Reminder
     return {
       '__className__': 'Reminder',
       if (id != null) 'id': id,
-      'userId': userId,
+      'userId': userId.toJson(),
       'title': title,
       if (description != null) 'description': description,
       'dueAtUtc': dueAtUtc.toJson(),
       'originalTimezone': originalTimezone,
       if (repeatRule != null) 'repeatRule': repeatRule,
-      if (snoozedUntil != null) 'snoozedUntil': snoozedUntil?.toJson(),
+      if (snoozedUntilUtc != null) 'snoozedUntilUtc': snoozedUntilUtc?.toJson(),
       'isCompleted': isCompleted,
       'priority': priority,
       'revision': revision,
@@ -163,13 +155,13 @@ abstract class Reminder
     return {
       '__className__': 'Reminder',
       if (id != null) 'id': id,
-      'userId': userId,
+      'userId': userId.toJson(),
       'title': title,
       if (description != null) 'description': description,
       'dueAtUtc': dueAtUtc.toJson(),
       'originalTimezone': originalTimezone,
       if (repeatRule != null) 'repeatRule': repeatRule,
-      if (snoozedUntil != null) 'snoozedUntil': snoozedUntil?.toJson(),
+      if (snoozedUntilUtc != null) 'snoozedUntilUtc': snoozedUntilUtc?.toJson(),
       'isCompleted': isCompleted,
       'priority': priority,
       'revision': revision,
@@ -213,18 +205,18 @@ class _Undefined {}
 class _ReminderImpl extends Reminder {
   _ReminderImpl({
     int? id,
-    required String userId,
+    required _i1.UuidValue userId,
     required String title,
     String? description,
     required DateTime dueAtUtc,
     required String originalTimezone,
     String? repeatRule,
-    DateTime? snoozedUntil,
-    required bool isCompleted,
-    required int priority,
-    required int revision,
-    required DateTime createdAt,
-    required DateTime updatedAt,
+    DateTime? snoozedUntilUtc,
+    bool? isCompleted,
+    int? priority,
+    int? revision,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) : super._(
          id: id,
          userId: userId,
@@ -233,7 +225,7 @@ class _ReminderImpl extends Reminder {
          dueAtUtc: dueAtUtc,
          originalTimezone: originalTimezone,
          repeatRule: repeatRule,
-         snoozedUntil: snoozedUntil,
+         snoozedUntilUtc: snoozedUntilUtc,
          isCompleted: isCompleted,
          priority: priority,
          revision: revision,
@@ -247,13 +239,13 @@ class _ReminderImpl extends Reminder {
   @override
   Reminder copyWith({
     Object? id = _Undefined,
-    String? userId,
+    _i1.UuidValue? userId,
     String? title,
     Object? description = _Undefined,
     DateTime? dueAtUtc,
     String? originalTimezone,
     Object? repeatRule = _Undefined,
-    Object? snoozedUntil = _Undefined,
+    Object? snoozedUntilUtc = _Undefined,
     bool? isCompleted,
     int? priority,
     int? revision,
@@ -268,9 +260,9 @@ class _ReminderImpl extends Reminder {
       dueAtUtc: dueAtUtc ?? this.dueAtUtc,
       originalTimezone: originalTimezone ?? this.originalTimezone,
       repeatRule: repeatRule is String? ? repeatRule : this.repeatRule,
-      snoozedUntil: snoozedUntil is DateTime?
-          ? snoozedUntil
-          : this.snoozedUntil,
+      snoozedUntilUtc: snoozedUntilUtc is DateTime?
+          ? snoozedUntilUtc
+          : this.snoozedUntilUtc,
       isCompleted: isCompleted ?? this.isCompleted,
       priority: priority ?? this.priority,
       revision: revision ?? this.revision,
@@ -283,10 +275,11 @@ class _ReminderImpl extends Reminder {
 class ReminderUpdateTable extends _i1.UpdateTable<ReminderTable> {
   ReminderUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> userId(String value) => _i1.ColumnValue(
-    table.userId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> userId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.userId,
+        value,
+      );
 
   _i1.ColumnValue<String, String> title(String value) => _i1.ColumnValue(
     table.title,
@@ -315,9 +308,9 @@ class ReminderUpdateTable extends _i1.UpdateTable<ReminderTable> {
     value,
   );
 
-  _i1.ColumnValue<DateTime, DateTime> snoozedUntil(DateTime? value) =>
+  _i1.ColumnValue<DateTime, DateTime> snoozedUntilUtc(DateTime? value) =>
       _i1.ColumnValue(
-        table.snoozedUntil,
+        table.snoozedUntilUtc,
         value,
       );
 
@@ -352,7 +345,7 @@ class ReminderUpdateTable extends _i1.UpdateTable<ReminderTable> {
 class ReminderTable extends _i1.Table<int?> {
   ReminderTable({super.tableRelation}) : super(tableName: 'reminders') {
     updateTable = ReminderUpdateTable(this);
-    userId = _i1.ColumnString(
+    userId = _i1.ColumnUuid(
       'userId',
       this,
     );
@@ -376,68 +369,61 @@ class ReminderTable extends _i1.Table<int?> {
       'repeatRule',
       this,
     );
-    snoozedUntil = _i1.ColumnDateTime(
-      'snoozedUntil',
+    snoozedUntilUtc = _i1.ColumnDateTime(
+      'snoozedUntilUtc',
       this,
     );
     isCompleted = _i1.ColumnBool(
       'isCompleted',
       this,
+      hasDefault: true,
     );
     priority = _i1.ColumnInt(
       'priority',
       this,
+      hasDefault: true,
     );
     revision = _i1.ColumnInt(
       'revision',
       this,
+      hasDefault: true,
     );
     createdAt = _i1.ColumnDateTime(
       'createdAt',
       this,
+      hasDefault: true,
     );
     updatedAt = _i1.ColumnDateTime(
       'updatedAt',
       this,
+      hasDefault: true,
     );
   }
 
   late final ReminderUpdateTable updateTable;
 
-  /// The user who owns this reminder (UUID string)
-  late final _i1.ColumnString userId;
+  late final _i1.ColumnUuid userId;
 
-  /// The reminder title/summary
   late final _i1.ColumnString title;
 
-  /// Optional detailed description
   late final _i1.ColumnString description;
 
-  /// Due date/time stored in UTC
   late final _i1.ColumnDateTime dueAtUtc;
 
-  /// Original timezone when reminder was created (for DST handling)
   late final _i1.ColumnString originalTimezone;
 
-  /// RRULE format for recurring reminders (optional)
   late final _i1.ColumnString repeatRule;
 
-  /// If snoozed, when to remind again
-  late final _i1.ColumnDateTime snoozedUntil;
+  late final _i1.ColumnDateTime snoozedUntilUtc;
 
-  /// Whether the reminder has been completed
   late final _i1.ColumnBool isCompleted;
 
-  /// Priority level: 1=low, 2=medium, 3=high
   late final _i1.ColumnInt priority;
 
-  /// Revision number for sync conflict resolution (last-write-wins)
   late final _i1.ColumnInt revision;
 
-  /// When the reminder was created
   late final _i1.ColumnDateTime createdAt;
 
-  /// When the reminder was last updated
   late final _i1.ColumnDateTime updatedAt;
 
   @override
@@ -449,7 +435,7 @@ class ReminderTable extends _i1.Table<int?> {
     dueAtUtc,
     originalTimezone,
     repeatRule,
-    snoozedUntil,
+    snoozedUntilUtc,
     isCompleted,
     priority,
     revision,

@@ -17,32 +17,34 @@ abstract class UserSettings
   UserSettings._({
     this.id,
     required this.userId,
-    required this.defaultSnoozeMinutes,
+    int? defaultSnoozeMinutes,
     this.quietHoursStart,
     this.quietHoursEnd,
-    required this.voiceEnabled,
-    required this.timezone,
-  });
+    bool? voiceEnabled,
+    String? timezone,
+  }) : defaultSnoozeMinutes = defaultSnoozeMinutes ?? 15,
+       voiceEnabled = voiceEnabled ?? true,
+       timezone = timezone ?? 'UTC';
 
   factory UserSettings({
     int? id,
-    required String userId,
-    required int defaultSnoozeMinutes,
+    required _i1.UuidValue userId,
+    int? defaultSnoozeMinutes,
     String? quietHoursStart,
     String? quietHoursEnd,
-    required bool voiceEnabled,
-    required String timezone,
+    bool? voiceEnabled,
+    String? timezone,
   }) = _UserSettingsImpl;
 
   factory UserSettings.fromJson(Map<String, dynamic> jsonSerialization) {
     return UserSettings(
       id: jsonSerialization['id'] as int?,
-      userId: jsonSerialization['userId'] as String,
-      defaultSnoozeMinutes: jsonSerialization['defaultSnoozeMinutes'] as int,
+      userId: _i1.UuidValueJsonExtension.fromJson(jsonSerialization['userId']),
+      defaultSnoozeMinutes: jsonSerialization['defaultSnoozeMinutes'] as int?,
       quietHoursStart: jsonSerialization['quietHoursStart'] as String?,
       quietHoursEnd: jsonSerialization['quietHoursEnd'] as String?,
-      voiceEnabled: jsonSerialization['voiceEnabled'] as bool,
-      timezone: jsonSerialization['timezone'] as String,
+      voiceEnabled: jsonSerialization['voiceEnabled'] as bool?,
+      timezone: jsonSerialization['timezone'] as String?,
     );
   }
 
@@ -53,22 +55,16 @@ abstract class UserSettings
   @override
   int? id;
 
-  /// The user ID (UUID string) - unique per user
-  String userId;
+  _i1.UuidValue userId;
 
-  /// Default snooze duration in minutes
   int defaultSnoozeMinutes;
 
-  /// Quiet hours start time (e.g., "22:00")
   String? quietHoursStart;
 
-  /// Quiet hours end time (e.g., "07:00")
   String? quietHoursEnd;
 
-  /// Whether voice input is enabled
   bool voiceEnabled;
 
-  /// User's timezone (e.g., "America/New_York")
   String timezone;
 
   @override
@@ -79,7 +75,7 @@ abstract class UserSettings
   @_i1.useResult
   UserSettings copyWith({
     int? id,
-    String? userId,
+    _i1.UuidValue? userId,
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
     String? quietHoursEnd,
@@ -91,7 +87,7 @@ abstract class UserSettings
     return {
       '__className__': 'UserSettings',
       if (id != null) 'id': id,
-      'userId': userId,
+      'userId': userId.toJson(),
       'defaultSnoozeMinutes': defaultSnoozeMinutes,
       if (quietHoursStart != null) 'quietHoursStart': quietHoursStart,
       if (quietHoursEnd != null) 'quietHoursEnd': quietHoursEnd,
@@ -105,7 +101,7 @@ abstract class UserSettings
     return {
       '__className__': 'UserSettings',
       if (id != null) 'id': id,
-      'userId': userId,
+      'userId': userId.toJson(),
       'defaultSnoozeMinutes': defaultSnoozeMinutes,
       if (quietHoursStart != null) 'quietHoursStart': quietHoursStart,
       if (quietHoursEnd != null) 'quietHoursEnd': quietHoursEnd,
@@ -149,12 +145,12 @@ class _Undefined {}
 class _UserSettingsImpl extends UserSettings {
   _UserSettingsImpl({
     int? id,
-    required String userId,
-    required int defaultSnoozeMinutes,
+    required _i1.UuidValue userId,
+    int? defaultSnoozeMinutes,
     String? quietHoursStart,
     String? quietHoursEnd,
-    required bool voiceEnabled,
-    required String timezone,
+    bool? voiceEnabled,
+    String? timezone,
   }) : super._(
          id: id,
          userId: userId,
@@ -171,7 +167,7 @@ class _UserSettingsImpl extends UserSettings {
   @override
   UserSettings copyWith({
     Object? id = _Undefined,
-    String? userId,
+    _i1.UuidValue? userId,
     int? defaultSnoozeMinutes,
     Object? quietHoursStart = _Undefined,
     Object? quietHoursEnd = _Undefined,
@@ -197,10 +193,11 @@ class _UserSettingsImpl extends UserSettings {
 class UserSettingsUpdateTable extends _i1.UpdateTable<UserSettingsTable> {
   UserSettingsUpdateTable(super.table);
 
-  _i1.ColumnValue<String, String> userId(String value) => _i1.ColumnValue(
-    table.userId,
-    value,
-  );
+  _i1.ColumnValue<_i1.UuidValue, _i1.UuidValue> userId(_i1.UuidValue value) =>
+      _i1.ColumnValue(
+        table.userId,
+        value,
+      );
 
   _i1.ColumnValue<int, int> defaultSnoozeMinutes(int value) => _i1.ColumnValue(
     table.defaultSnoozeMinutes,
@@ -233,13 +230,14 @@ class UserSettingsUpdateTable extends _i1.UpdateTable<UserSettingsTable> {
 class UserSettingsTable extends _i1.Table<int?> {
   UserSettingsTable({super.tableRelation}) : super(tableName: 'user_settings') {
     updateTable = UserSettingsUpdateTable(this);
-    userId = _i1.ColumnString(
+    userId = _i1.ColumnUuid(
       'userId',
       this,
     );
     defaultSnoozeMinutes = _i1.ColumnInt(
       'defaultSnoozeMinutes',
       this,
+      hasDefault: true,
     );
     quietHoursStart = _i1.ColumnString(
       'quietHoursStart',
@@ -252,31 +250,27 @@ class UserSettingsTable extends _i1.Table<int?> {
     voiceEnabled = _i1.ColumnBool(
       'voiceEnabled',
       this,
+      hasDefault: true,
     );
     timezone = _i1.ColumnString(
       'timezone',
       this,
+      hasDefault: true,
     );
   }
 
   late final UserSettingsUpdateTable updateTable;
 
-  /// The user ID (UUID string) - unique per user
-  late final _i1.ColumnString userId;
+  late final _i1.ColumnUuid userId;
 
-  /// Default snooze duration in minutes
   late final _i1.ColumnInt defaultSnoozeMinutes;
 
-  /// Quiet hours start time (e.g., "22:00")
   late final _i1.ColumnString quietHoursStart;
 
-  /// Quiet hours end time (e.g., "07:00")
   late final _i1.ColumnString quietHoursEnd;
 
-  /// Whether voice input is enabled
   late final _i1.ColumnBool voiceEnabled;
 
-  /// User's timezone (e.g., "America/New_York")
   late final _i1.ColumnString timezone;
 
   @override

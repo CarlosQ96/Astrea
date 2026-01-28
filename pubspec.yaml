@@ -1,0 +1,15 @@
+name: astrea_workspace
+description: Astrea monorepo workspace for git hooks and tooling.
+publish_to: 'none'
+
+environment:
+  sdk: '^3.8.0'
+
+dev_dependencies:
+  husky: ^0.1.7
+  lint_staged: ^0.5.1
+
+lint_staged:
+  '**/*.dart':
+    - dart format --set-exit-if-changed
+    - dart analyze --fatal-infos

@@ -1,0 +1,44 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-push checks..."
+
+# Server checks
+echo "📦 Checking server..."
+cd astrea_server
+dart analyze --fatal-infos
+if [ $? -ne 0 ]; then
+  echo "❌ Server analysis failed"
+  exit 1
+fi
+
+set +e
+dart test 2>/dev/null
+TEST_EXIT=$?
+set -e
+if [ $TEST_EXIT -ne 0 ] && [ $TEST_EXIT -ne 79 ]; then
+  echo "❌ Server tests failed"
+  exit 1
+fi
+cd ..
+
+# Flutter checks
+echo "📱 Checking Flutter app..."
+cd astrea_flutter
+flutter analyze --fatal-infos
+if [ $? -ne 0 ]; then
+  echo "❌ Flutter analysis failed"
+  exit 1
+fi
+
+set +e
+flutter test 2>/dev/null
+TEST_EXIT=$?
+set -e
+if [ $TEST_EXIT -ne 0 ] && [ $TEST_EXIT -ne 79 ]; then
+  echo "❌ Flutter tests failed"
+  exit 1
+fi
+cd ..
+
+echo "✅ All pre-push checks passed!"
