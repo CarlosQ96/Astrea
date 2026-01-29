@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/reminders/reminder.dart';
+import '../generated/reminder.dart';
 
 class ReminderEndpoint extends Endpoint {
   @override

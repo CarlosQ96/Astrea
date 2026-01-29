@@ -1,6 +1,6 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/settings/user_settings.dart';
+import '../generated/user_settings.dart';
 
 class UserSettingsEndpoint extends Endpoint {
   @override

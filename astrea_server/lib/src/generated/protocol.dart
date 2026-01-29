@@ -16,13 +16,13 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'chat/chat_response.dart' as _i5;
-import 'reminders/reminder.dart' as _i6;
-import 'settings/user_settings.dart' as _i7;
-import 'package:astrea_server/src/generated/reminders/reminder.dart' as _i8;
-export 'chat/chat_response.dart';
-export 'reminders/reminder.dart';
-export 'settings/user_settings.dart';
+import 'chat_response.dart' as _i5;
+import 'reminder.dart' as _i6;
+import 'user_settings.dart' as _i7;
+import 'package:astrea_server/src/generated/reminder.dart' as _i8;
+export 'chat_response.dart';
+export 'reminder.dart';
+export 'user_settings.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();

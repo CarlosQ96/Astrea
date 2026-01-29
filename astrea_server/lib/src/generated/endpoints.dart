@@ -13,9 +13,9 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
-import '../chat/chat_endpoint.dart' as _i4;
-import '../reminders/reminder_endpoint.dart' as _i5;
-import '../settings/user_settings_endpoint.dart' as _i6;
+import '../endpoints/chat_endpoint.dart' as _i4;
+import '../endpoints/reminder_endpoint.dart' as _i5;
+import '../endpoints/user_settings_endpoint.dart' as _i6;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i7;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'

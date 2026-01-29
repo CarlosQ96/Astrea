@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:llm_dart/llm_dart.dart';
 import 'package:serverpod/serverpod.dart';
 
-import '../generated/reminders/reminder.dart';
+import '../generated/reminder.dart';
 import 'exceptions.dart';
 import 'intent.dart';
 

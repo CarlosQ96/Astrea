@@ -11,17 +11,17 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
-import 'chat/chat_response.dart' as _i2;
-import 'reminders/reminder.dart' as _i3;
-import 'settings/user_settings.dart' as _i4;
-import 'package:astrea_client/src/protocol/reminders/reminder.dart' as _i5;
+import 'chat_response.dart' as _i2;
+import 'reminder.dart' as _i3;
+import 'user_settings.dart' as _i4;
+import 'package:astrea_client/src/protocol/reminder.dart' as _i5;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
     as _i6;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i7;
-export 'chat/chat_response.dart';
-export 'reminders/reminder.dart';
-export 'settings/user_settings.dart';
+export 'chat_response.dart';
+export 'reminder.dart';
+export 'user_settings.dart';
 export 'client.dart';
 
 class Protocol extends _i1.SerializationManager {

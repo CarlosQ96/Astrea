@@ -1,11 +1,11 @@
 import 'package:serverpod/serverpod.dart';
 
-import '../ai/claude_service.dart';
-import '../ai/exceptions.dart';
-import '../ai/intent.dart';
-import '../generated/chat/chat_response.dart';
-import '../generated/reminders/reminder.dart';
-import '../generated/settings/user_settings.dart';
+import '../services/claude_service.dart';
+import '../services/exceptions.dart';
+import '../services/intent.dart';
+import '../generated/chat_response.dart';
+import '../generated/reminder.dart';
+import '../generated/user_settings.dart';
 
 /// Handles natural language chat and executes reminder actions.
 class ChatEndpoint extends Endpoint {

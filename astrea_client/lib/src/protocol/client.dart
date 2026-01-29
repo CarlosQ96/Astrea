@@ -16,9 +16,9 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'package:astrea_client/src/protocol/chat/chat_response.dart' as _i5;
-import 'package:astrea_client/src/protocol/reminders/reminder.dart' as _i6;
-import 'package:astrea_client/src/protocol/settings/user_settings.dart' as _i7;
+import 'package:astrea_client/src/protocol/chat_response.dart' as _i5;
+import 'package:astrea_client/src/protocol/reminder.dart' as _i6;
+import 'package:astrea_client/src/protocol/user_settings.dart' as _i7;
 import 'protocol.dart' as _i8;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
@@ -235,11 +235,7 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
   );
 }
 
-/// Endpoint for AI-powered chat interactions.
-///
-/// This endpoint handles natural language messages from users,
-/// classifies their intent, and executes appropriate actions
-/// on their reminders.
+/// Handles natural language chat and executes reminder actions.
 /// {@category Endpoint}
 class EndpointChat extends _i2.EndpointRef {
   EndpointChat(_i2.EndpointCaller caller) : super(caller);
@@ -247,15 +243,7 @@ class EndpointChat extends _i2.EndpointRef {
   @override
   String get name => 'chat';
 
-  /// Process a chat message and return an AI-generated response.
-  ///
-  /// The AI will classify the user's intent and optionally perform
-  /// actions like creating, completing, or snoozing reminders.
-  ///
-  /// [message] - The user's natural language message.
-  /// [timezone] - Optional timezone override (defaults to user settings).
-  ///
-  /// Returns a [ChatResponse] with the AI's response and any action taken.
+  /// Main entry point: processes chat message, classifies intent, executes action.
   _i3.Future<_i5.ChatResponse> send(
     String message, {
     String? timezone,

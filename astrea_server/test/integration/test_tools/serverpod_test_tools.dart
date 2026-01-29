@@ -16,9 +16,9 @@ import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'package:astrea_server/src/generated/chat/chat_response.dart' as _i5;
-import 'package:astrea_server/src/generated/reminders/reminder.dart' as _i6;
-import 'package:astrea_server/src/generated/settings/user_settings.dart' as _i7;
+import 'package:astrea_server/src/generated/chat_response.dart' as _i5;
+import 'package:astrea_server/src/generated/reminder.dart' as _i6;
+import 'package:astrea_server/src/generated/user_settings.dart' as _i7;
 import 'package:astrea_server/src/generated/protocol.dart';
 import 'package:astrea_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
