@@ -37,6 +37,8 @@ dependencies:
   flutter_timezone: ^3.0.1
   # Notifications
   awesome_notifications: ^0.10.0
+  # Voice input
+  speech_to_text: ^7.3.0
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
