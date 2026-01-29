@@ -31,6 +31,10 @@ dependencies:
     path: ../astrea_client
   serverpod_flutter: 3.2.3
   serverpod_auth_idp_flutter: 3.2.3
+  # State management
+  flutter_riverpod: ^2.6.1
+  # Timezone
+  flutter_timezone: ^3.0.1
 
 dev_dependencies:
   flutter_lints: '>=3.0.0 <7.0.0'
