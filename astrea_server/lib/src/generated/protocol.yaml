@@ -8,3 +8,15 @@ emailIdp:
   - finishPasswordReset:
 jwtRefresh:
   - refreshAccessToken:
+reminder:
+  - create:
+  - read:
+  - update:
+  - delete:
+  - list:
+  - complete:
+  - snooze:
+  - listDue:
+userSettings:
+  - get:
+  - update:

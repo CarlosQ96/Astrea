@@ -16,7 +16,9 @@ import 'package:serverpod_client/serverpod_client.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
-import 'protocol.dart' as _i5;
+import 'package:astrea_client/src/protocol/reminders/reminder.dart' as _i5;
+import 'package:astrea_client/src/protocol/settings/user_settings.dart' as _i6;
+import 'protocol.dart' as _i7;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -232,6 +234,142 @@ class EndpointJwtRefresh extends _i4.EndpointRefreshJwtTokens {
   );
 }
 
+/// {@category Endpoint}
+class EndpointReminder extends _i2.EndpointRef {
+  EndpointReminder(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'reminder';
+
+  _i3.Future<_i5.Reminder> create({
+    required String title,
+    String? description,
+    required DateTime dueAtUtc,
+    required String originalTimezone,
+    String? repeatRule,
+    int? priority,
+  }) => caller.callServerEndpoint<_i5.Reminder>(
+    'reminder',
+    'create',
+    {
+      'title': title,
+      'description': description,
+      'dueAtUtc': dueAtUtc,
+      'originalTimezone': originalTimezone,
+      'repeatRule': repeatRule,
+      'priority': priority,
+    },
+  );
+
+  _i3.Future<_i5.Reminder?> read(int id) =>
+      caller.callServerEndpoint<_i5.Reminder?>(
+        'reminder',
+        'read',
+        {'id': id},
+      );
+
+  _i3.Future<_i5.Reminder?> update(
+    int id, {
+    String? title,
+    String? description,
+    DateTime? dueAtUtc,
+    String? originalTimezone,
+    String? repeatRule,
+    int? priority,
+  }) => caller.callServerEndpoint<_i5.Reminder?>(
+    'reminder',
+    'update',
+    {
+      'id': id,
+      'title': title,
+      'description': description,
+      'dueAtUtc': dueAtUtc,
+      'originalTimezone': originalTimezone,
+      'repeatRule': repeatRule,
+      'priority': priority,
+    },
+  );
+
+  _i3.Future<bool> delete(int id) => caller.callServerEndpoint<bool>(
+    'reminder',
+    'delete',
+    {'id': id},
+  );
+
+  _i3.Future<List<_i5.Reminder>> list({
+    bool? includeCompleted,
+    int? limit,
+    int? offset,
+  }) => caller.callServerEndpoint<List<_i5.Reminder>>(
+    'reminder',
+    'list',
+    {
+      'includeCompleted': includeCompleted,
+      'limit': limit,
+      'offset': offset,
+    },
+  );
+
+  _i3.Future<_i5.Reminder?> complete(int id) =>
+      caller.callServerEndpoint<_i5.Reminder?>(
+        'reminder',
+        'complete',
+        {'id': id},
+      );
+
+  _i3.Future<_i5.Reminder?> snooze(
+    int id,
+    int minutes,
+  ) => caller.callServerEndpoint<_i5.Reminder?>(
+    'reminder',
+    'snooze',
+    {
+      'id': id,
+      'minutes': minutes,
+    },
+  );
+
+  _i3.Future<List<_i5.Reminder>> listDue() =>
+      caller.callServerEndpoint<List<_i5.Reminder>>(
+        'reminder',
+        'listDue',
+        {},
+      );
+}
+
+/// {@category Endpoint}
+class EndpointUserSettings extends _i2.EndpointRef {
+  EndpointUserSettings(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'userSettings';
+
+  _i3.Future<_i6.UserSettings> get() =>
+      caller.callServerEndpoint<_i6.UserSettings>(
+        'userSettings',
+        'get',
+        {},
+      );
+
+  _i3.Future<_i6.UserSettings> update({
+    int? defaultSnoozeMinutes,
+    String? quietHoursStart,
+    String? quietHoursEnd,
+    bool? voiceEnabled,
+    String? timezone,
+  }) => caller.callServerEndpoint<_i6.UserSettings>(
+    'userSettings',
+    'update',
+    {
+      'defaultSnoozeMinutes': defaultSnoozeMinutes,
+      'quietHoursStart': quietHoursStart,
+      'quietHoursEnd': quietHoursEnd,
+      'voiceEnabled': voiceEnabled,
+      'timezone': timezone,
+    },
+  );
+}
+
 class Modules {
   Modules(Client client) {
     serverpod_auth_idp = _i1.Caller(client);
@@ -263,7 +401,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i5.Protocol(),
+         _i7.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -274,6 +412,8 @@ class Client extends _i2.ServerpodClientShared {
        ) {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
+    reminder = EndpointReminder(this);
+    userSettings = EndpointUserSettings(this);
     modules = Modules(this);
   }
 
@@ -281,12 +421,18 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointJwtRefresh jwtRefresh;
 
+  late final EndpointReminder reminder;
+
+  late final EndpointUserSettings userSettings;
+
   late final Modules modules;
 
   @override
   Map<String, _i2.EndpointRef> get endpointRefLookup => {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
+    'reminder': reminder,
+    'userSettings': userSettings,
   };
 
   @override

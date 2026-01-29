@@ -19,6 +19,7 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
 import 'chat/chat_response.dart' as _i5;
 import 'reminders/reminder.dart' as _i6;
 import 'settings/user_settings.dart' as _i7;
+import 'package:astrea_server/src/generated/reminders/reminder.dart' as _i8;
 export 'chat/chat_response.dart';
 export 'reminders/reminder.dart';
 export 'settings/user_settings.dart';
@@ -320,6 +321,10 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (t == _i1.getType<_i7.UserSettings?>()) {
       return (data != null ? _i7.UserSettings.fromJson(data) : null) as T;
+    }
+    if (t == List<_i8.Reminder>) {
+      return (data as List).map((e) => deserialize<_i8.Reminder>(e)).toList()
+          as T;
     }
     try {
       return _i3.Protocol().deserialize<T>(data, t);
