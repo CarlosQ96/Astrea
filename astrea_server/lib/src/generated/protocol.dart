@@ -18,10 +18,12 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'chat_response.dart' as _i5;
 import 'reminder.dart' as _i6;
-import 'user_settings.dart' as _i7;
-import 'package:astrea_server/src/generated/reminder.dart' as _i8;
+import 'reminder_sync_event.dart' as _i7;
+import 'user_settings.dart' as _i8;
+import 'package:astrea_server/src/generated/reminder.dart' as _i9;
 export 'chat_response.dart';
 export 'reminder.dart';
+export 'reminder_sync_event.dart';
 export 'user_settings.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
@@ -310,8 +312,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i6.Reminder) {
       return _i6.Reminder.fromJson(data) as T;
     }
-    if (t == _i7.UserSettings) {
-      return _i7.UserSettings.fromJson(data) as T;
+    if (t == _i7.ReminderSyncEvent) {
+      return _i7.ReminderSyncEvent.fromJson(data) as T;
+    }
+    if (t == _i8.UserSettings) {
+      return _i8.UserSettings.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.ChatResponse?>()) {
       return (data != null ? _i5.ChatResponse.fromJson(data) : null) as T;
@@ -319,11 +324,14 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i1.getType<_i6.Reminder?>()) {
       return (data != null ? _i6.Reminder.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i7.UserSettings?>()) {
-      return (data != null ? _i7.UserSettings.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i7.ReminderSyncEvent?>()) {
+      return (data != null ? _i7.ReminderSyncEvent.fromJson(data) : null) as T;
     }
-    if (t == List<_i8.Reminder>) {
-      return (data as List).map((e) => deserialize<_i8.Reminder>(e)).toList()
+    if (t == _i1.getType<_i8.UserSettings?>()) {
+      return (data != null ? _i8.UserSettings.fromJson(data) : null) as T;
+    }
+    if (t == List<_i9.Reminder>) {
+      return (data as List).map((e) => deserialize<_i9.Reminder>(e)).toList()
           as T;
     }
     try {
@@ -342,7 +350,8 @@ class Protocol extends _i1.SerializationManagerServer {
     return switch (type) {
       _i5.ChatResponse => 'ChatResponse',
       _i6.Reminder => 'Reminder',
-      _i7.UserSettings => 'UserSettings',
+      _i7.ReminderSyncEvent => 'ReminderSyncEvent',
+      _i8.UserSettings => 'UserSettings',
       _ => null,
     };
   }
@@ -361,7 +370,9 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'ChatResponse';
       case _i6.Reminder():
         return 'Reminder';
-      case _i7.UserSettings():
+      case _i7.ReminderSyncEvent():
+        return 'ReminderSyncEvent';
+      case _i8.UserSettings():
         return 'UserSettings';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -391,8 +402,11 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'Reminder') {
       return deserialize<_i6.Reminder>(data['data']);
     }
+    if (dataClassName == 'ReminderSyncEvent') {
+      return deserialize<_i7.ReminderSyncEvent>(data['data']);
+    }
     if (dataClassName == 'UserSettings') {
-      return deserialize<_i7.UserSettings>(data['data']);
+      return deserialize<_i8.UserSettings>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -432,8 +446,8 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (t) {
       case _i6.Reminder:
         return _i6.Reminder.t;
-      case _i7.UserSettings:
-        return _i7.UserSettings.t;
+      case _i8.UserSettings:
+        return _i8.UserSettings.t;
     }
     return null;
   }

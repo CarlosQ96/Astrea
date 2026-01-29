@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/reminder.dart';
+import 'sync_endpoint.dart';
 
 class ReminderEndpoint extends Endpoint {
   @override
@@ -35,7 +36,9 @@ class ReminderEndpoint extends Endpoint {
       priority: priority,
     );
 
-    return await Reminder.db.insertRow(session, reminder);
+    final created = await Reminder.db.insertRow(session, reminder);
+    ReminderSyncBroadcaster.notifyCreated(created);
+    return created;
   }
 
   Future<Reminder?> read(Session session, int id) async {
@@ -80,7 +83,9 @@ class ReminderEndpoint extends Endpoint {
       updatedAt: DateTime.now().toUtc(),
     );
 
-    return await Reminder.db.updateRow(session, updated);
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifyUpdated(result);
+    return result;
   }
 
   Future<bool> delete(Session session, int id) async {
@@ -91,7 +96,10 @@ class ReminderEndpoint extends Endpoint {
       return false;
     }
 
+    final reminderId = existing.id!;
+    final reminderUserId = existing.userId;
     await Reminder.db.deleteRow(session, existing);
+    ReminderSyncBroadcaster.notifyDeleted(reminderId, reminderUserId);
     return true;
   }
 
@@ -132,7 +140,9 @@ class ReminderEndpoint extends Endpoint {
       updatedAt: DateTime.now().toUtc(),
     );
 
-    return await Reminder.db.updateRow(session, updated);
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifyCompleted(result);
+    return result;
   }
 
   Future<Reminder?> snooze(Session session, int id, int minutes) async {
@@ -153,7 +163,9 @@ class ReminderEndpoint extends Endpoint {
       updatedAt: DateTime.now().toUtc(),
     );
 
-    return await Reminder.db.updateRow(session, updated);
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifySnoozed(result);
+    return result;
   }
 
   Future<List<Reminder>> listDue(Session session) async {

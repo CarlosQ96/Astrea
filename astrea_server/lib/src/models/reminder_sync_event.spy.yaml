@@ -1,0 +1,8 @@
+class: ReminderSyncEvent
+
+fields:
+  eventType: String       # 'created', 'updated', 'deleted', 'completed', 'snoozed'
+  reminderId: int
+  userId: UuidValue       # Owner of the reminder (for filtering delete events)
+  reminder: Reminder?     # null for delete events
+  timestamp: DateTime

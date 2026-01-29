@@ -18,8 +18,9 @@ import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
 import 'package:astrea_client/src/protocol/chat_response.dart' as _i5;
 import 'package:astrea_client/src/protocol/reminder.dart' as _i6;
-import 'package:astrea_client/src/protocol/user_settings.dart' as _i7;
-import 'protocol.dart' as _i8;
+import 'package:astrea_client/src/protocol/reminder_sync_event.dart' as _i7;
+import 'package:astrea_client/src/protocol/user_settings.dart' as _i8;
+import 'protocol.dart' as _i9;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -360,6 +361,31 @@ class EndpointReminder extends _i2.EndpointRef {
       );
 }
 
+/// Streaming endpoint for real-time reminder synchronization.
+/// Clients subscribe to receive events when reminders change.
+/// {@category Endpoint}
+class EndpointSync extends _i2.EndpointRef {
+  EndpointSync(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'sync';
+
+  /// Subscribe to real-time reminder updates for the authenticated user.
+  /// Returns a stream of ReminderSyncEvent that the client can listen to.
+  ///
+  /// Events are filtered to only include reminders owned by the current user.
+  _i3.Stream<_i7.ReminderSyncEvent> subscribeToReminders() =>
+      caller.callStreamingServerEndpoint<
+        _i3.Stream<_i7.ReminderSyncEvent>,
+        _i7.ReminderSyncEvent
+      >(
+        'sync',
+        'subscribeToReminders',
+        {},
+        {},
+      );
+}
+
 /// {@category Endpoint}
 class EndpointUserSettings extends _i2.EndpointRef {
   EndpointUserSettings(_i2.EndpointCaller caller) : super(caller);
@@ -367,20 +393,20 @@ class EndpointUserSettings extends _i2.EndpointRef {
   @override
   String get name => 'userSettings';
 
-  _i3.Future<_i7.UserSettings> get() =>
-      caller.callServerEndpoint<_i7.UserSettings>(
+  _i3.Future<_i8.UserSettings> get() =>
+      caller.callServerEndpoint<_i8.UserSettings>(
         'userSettings',
         'get',
         {},
       );
 
-  _i3.Future<_i7.UserSettings> update({
+  _i3.Future<_i8.UserSettings> update({
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
     String? quietHoursEnd,
     bool? voiceEnabled,
     String? timezone,
-  }) => caller.callServerEndpoint<_i7.UserSettings>(
+  }) => caller.callServerEndpoint<_i8.UserSettings>(
     'userSettings',
     'update',
     {
@@ -424,7 +450,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i8.Protocol(),
+         _i9.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -437,6 +463,7 @@ class Client extends _i2.ServerpodClientShared {
     jwtRefresh = EndpointJwtRefresh(this);
     chat = EndpointChat(this);
     reminder = EndpointReminder(this);
+    sync = EndpointSync(this);
     userSettings = EndpointUserSettings(this);
     modules = Modules(this);
   }
@@ -449,6 +476,8 @@ class Client extends _i2.ServerpodClientShared {
 
   late final EndpointReminder reminder;
 
+  late final EndpointSync sync;
+
   late final EndpointUserSettings userSettings;
 
   late final Modules modules;
@@ -459,6 +488,7 @@ class Client extends _i2.ServerpodClientShared {
     'jwtRefresh': jwtRefresh,
     'chat': chat,
     'reminder': reminder,
+    'sync': sync,
     'userSettings': userSettings,
   };
 

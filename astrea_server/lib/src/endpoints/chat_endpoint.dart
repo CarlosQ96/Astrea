@@ -6,6 +6,7 @@ import '../services/intent.dart';
 import '../generated/chat_response.dart';
 import '../generated/reminder.dart';
 import '../generated/user_settings.dart';
+import 'sync_endpoint.dart';
 
 /// Handles natural language chat and executes reminder actions.
 class ChatEndpoint extends Endpoint {
@@ -149,7 +150,8 @@ class ChatEndpoint extends Endpoint {
       priority: priority,
       repeatRule: repeatRule,
     );
-    await Reminder.db.insertRow(session, reminder);
+    final created = await Reminder.db.insertRow(session, reminder);
+    ReminderSyncBroadcaster.notifyCreated(created);
     return null;
   }
 
@@ -169,7 +171,8 @@ class ChatEndpoint extends Endpoint {
       revision: reminder.revision + 1,
       updatedAt: DateTime.now().toUtc(),
     );
-    await Reminder.db.updateRow(session, updated);
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifyCompleted(result);
     return null;
   }
 
@@ -184,6 +187,7 @@ class ChatEndpoint extends Endpoint {
     }
 
     await Reminder.db.deleteRow(session, reminder);
+    ReminderSyncBroadcaster.notifyDeleted(reminderId, userId);
     return null;
   }
 
@@ -204,7 +208,8 @@ class ChatEndpoint extends Endpoint {
       revision: reminder.revision + 1,
       updatedAt: DateTime.now().toUtc(),
     );
-    await Reminder.db.updateRow(session, updated);
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifySnoozed(result);
     return null;
   }
 

@@ -82,7 +82,9 @@ Future<void> sendChatMessage(WidgetRef ref, String message) async {
     ref.read(chatMessagesProvider.notifier).addAiMessage(response);
 
     // Schedule notification if a reminder was created
-    if (response.intent == 'create' &&
+    // Note: sync provider also schedules, but this ensures immediate scheduling
+    // if sync isn't connected yet. NotificationService replaces by ID.
+    if (response.intent == 'create_reminder' &&
         response.actionReminderId != null &&
         response.actionDueAtUtc != null) {
       await NotificationService.scheduleReminder(

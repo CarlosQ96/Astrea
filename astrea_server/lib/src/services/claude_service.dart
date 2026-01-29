@@ -166,7 +166,9 @@ Always convert to UTC for dueAtUtc
 SNOOZE MAPPING:
 "5 minutes" = 5, "15 minutes" or "a bit" = 15, "30 minutes" = 30, "1 hour" = 60, "tomorrow" = 1440
 
-When user refers to a reminder like "the mom one" or "groceries", match it to the most relevant reminder by title. If ambiguous, ask for clarification.
+When user refers to a reminder like "the mom one" or "groceries", match it to the most relevant reminder by title.
+When user says "the first one", "the second reminder", "my third reminder", etc., use the # number from the reminder list (sorted by creation order).
+If ambiguous, ask for clarification.
 
 Be concise but friendly. Use natural language, not robotic responses.
 ''';
@@ -175,8 +177,17 @@ Be concise but friendly. Use natural language, not robotic responses.
   String _buildReminderContext(List<Reminder> reminders) {
     if (reminders.isEmpty) return 'No reminders set.';
 
+    // Sort by creation time to establish order for "first", "second", etc.
+    final sortedByCreation = List<Reminder>.from(reminders)
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
     final buffer = StringBuffer();
-    for (final r in reminders) {
+    buffer.writeln(
+      '(Listed in creation order - #1 is the first reminder created)',
+    );
+    for (var i = 0; i < sortedByCreation.length; i++) {
+      final r = sortedByCreation[i];
+      final order = i + 1; // 1st, 2nd, 3rd...
       final status = r.isCompleted
           ? '✓'
           : (r.dueAtUtc.isBefore(DateTime.now().toUtc()) ? 'OVERDUE' : '○');
@@ -186,7 +197,7 @@ Be concise but friendly. Use natural language, not robotic responses.
         _ => 'medium',
       };
       buffer.writeln(
-        '[ID:${r.id}] $status ${r.title} | Due: ${r.dueAtUtc.toIso8601String()} | Priority: $priority${r.description != null ? ' | Note: ${r.description}' : ''}',
+        '#$order [ID:${r.id}] $status "${r.title}" | Due: ${r.dueAtUtc.toIso8601String()} | Priority: $priority${r.description != null ? ' | Note: ${r.description}' : ''}',
       );
     }
     return buffer.toString();
@@ -221,14 +232,41 @@ Be concise but friendly. Use natural language, not robotic responses.
 
       return (response: responseText, intent: intent, action: action);
     } catch (e) {
+      // Don't show raw JSON to users - extract response field if possible
+      final cleanResponse = _extractResponseFromMalformedJson(text);
       return (
-        response: text.isNotEmpty
-            ? text
-            : 'I had trouble understanding that. Could you try rephrasing?',
+        response: cleanResponse,
         intent: Intent.unknown,
         action: const NoAction(),
       );
     }
+  }
+
+  /// Attempts to extract the "response" field from potentially malformed JSON.
+  String _extractResponseFromMalformedJson(String text) {
+    if (text.isEmpty) {
+      return 'I had trouble understanding that. Could you try rephrasing?';
+    }
+
+    // Try to find "response": "..." pattern even in malformed JSON
+    final responsePattern = RegExp(r'"response"\s*:\s*"([^"]*(?:\\.[^"]*)*)"');
+    final match = responsePattern.firstMatch(text);
+    if (match != null && match.group(1) != null) {
+      // Unescape common JSON escape sequences
+      return match
+          .group(1)!
+          .replaceAll(r'\"', '"')
+          .replaceAll(r'\n', '\n')
+          .replaceAll(r'\\', r'\');
+    }
+
+    // If text looks like JSON, don't show it to user
+    if (text.trim().startsWith('{') || text.contains('"intent"')) {
+      return 'I had trouble processing that request. Could you try rephrasing?';
+    }
+
+    // Otherwise return the text as-is (might be a plain text response)
+    return text;
   }
 
   /// Routes action parsing based on intent type using pattern matching.

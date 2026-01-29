@@ -15,11 +15,12 @@ import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
 import '../endpoints/chat_endpoint.dart' as _i4;
 import '../endpoints/reminder_endpoint.dart' as _i5;
-import '../endpoints/user_settings_endpoint.dart' as _i6;
+import '../endpoints/sync_endpoint.dart' as _i6;
+import '../endpoints/user_settings_endpoint.dart' as _i7;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i7;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i8;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i9;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -49,7 +50,13 @@ class Endpoints extends _i1.EndpointDispatch {
           'reminder',
           null,
         ),
-      'userSettings': _i6.UserSettingsEndpoint()
+      'sync': _i6.SyncEndpoint()
+        ..initialize(
+          server,
+          'sync',
+          null,
+        ),
+      'userSettings': _i7.UserSettingsEndpoint()
         ..initialize(
           server,
           'userSettings',
@@ -507,6 +514,26 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['sync'] = _i1.EndpointConnector(
+      name: 'sync',
+      endpoint: endpoints['sync']!,
+      methodConnectors: {
+        'subscribeToReminders': _i1.MethodStreamConnector(
+          name: 'subscribeToReminders',
+          params: {},
+          streamParams: {},
+          returnType: _i1.MethodStreamReturnType.streamType,
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['sync'] as _i6.SyncEndpoint).subscribeToReminders(
+                session,
+              ),
+        ),
+      },
+    );
     connectors['userSettings'] = _i1.EndpointConnector(
       name: 'userSettings',
       endpoint: endpoints['userSettings']!,
@@ -518,7 +545,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['userSettings'] as _i6.UserSettingsEndpoint)
+              ) async => (endpoints['userSettings'] as _i7.UserSettingsEndpoint)
                   .get(session),
         ),
         'update': _i1.MethodConnector(
@@ -554,7 +581,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['userSettings'] as _i6.UserSettingsEndpoint)
+              ) async => (endpoints['userSettings'] as _i7.UserSettingsEndpoint)
                   .update(
                     session,
                     defaultSnoozeMinutes: params['defaultSnoozeMinutes'],
@@ -566,9 +593,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i7.Endpoints()
+    modules['serverpod_auth_idp'] = _i8.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i8.Endpoints()
+    modules['serverpod_auth_core'] = _i9.Endpoints()
       ..initializeEndpoints(server);
   }
 }

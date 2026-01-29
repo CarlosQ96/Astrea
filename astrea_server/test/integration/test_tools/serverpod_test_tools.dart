@@ -18,7 +18,8 @@ import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'package:astrea_server/src/generated/chat_response.dart' as _i5;
 import 'package:astrea_server/src/generated/reminder.dart' as _i6;
-import 'package:astrea_server/src/generated/user_settings.dart' as _i7;
+import 'package:astrea_server/src/generated/reminder_sync_event.dart' as _i7;
+import 'package:astrea_server/src/generated/user_settings.dart' as _i8;
 import 'package:astrea_server/src/generated/protocol.dart';
 import 'package:astrea_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -134,6 +135,8 @@ class TestEndpoints {
 
   late final _ReminderEndpoint reminder;
 
+  late final _SyncEndpoint sync;
+
   late final _UserSettingsEndpoint userSettings;
 }
 
@@ -157,6 +160,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     reminder = _ReminderEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    sync = _SyncEndpoint(
       endpoints,
       serializationManager,
     );
@@ -797,6 +804,49 @@ class _ReminderEndpoint {
   }
 }
 
+class _SyncEndpoint {
+  _SyncEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Stream<_i7.ReminderSyncEvent> subscribeToReminders(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager =
+        _i1.TestStreamManager<_i7.ReminderSyncEvent>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'sync',
+              method: 'subscribeToReminders',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'sync',
+              methodName: 'subscribeToReminders',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+}
+
 class _UserSettingsEndpoint {
   _UserSettingsEndpoint(
     this._endpointDispatch,
@@ -807,7 +857,7 @@ class _UserSettingsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i7.UserSettings> get(
+  _i3.Future<_i8.UserSettings> get(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -829,7 +879,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.UserSettings>);
+                as _i3.Future<_i8.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -837,7 +887,7 @@ class _UserSettingsEndpoint {
     });
   }
 
-  _i3.Future<_i7.UserSettings> update(
+  _i3.Future<_i8.UserSettings> update(
     _i1.TestSessionBuilder sessionBuilder, {
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
@@ -870,7 +920,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i7.UserSettings>);
+                as _i3.Future<_i8.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

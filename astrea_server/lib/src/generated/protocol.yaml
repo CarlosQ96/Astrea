@@ -19,6 +19,8 @@ reminder:
   - complete:
   - snooze:
   - listDue:
+sync:
+  - subscribeToReminders:
 userSettings:
   - get:
   - update:
