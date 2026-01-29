@@ -8,6 +8,8 @@ emailIdp:
   - finishPasswordReset:
 jwtRefresh:
   - refreshAccessToken:
+chat:
+  - send:
 reminder:
   - create:
   - read:

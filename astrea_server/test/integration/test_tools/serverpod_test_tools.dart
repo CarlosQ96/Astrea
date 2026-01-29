@@ -16,8 +16,9 @@ import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
-import 'package:astrea_server/src/generated/reminders/reminder.dart' as _i5;
-import 'package:astrea_server/src/generated/settings/user_settings.dart' as _i6;
+import 'package:astrea_server/src/generated/chat/chat_response.dart' as _i5;
+import 'package:astrea_server/src/generated/reminders/reminder.dart' as _i6;
+import 'package:astrea_server/src/generated/settings/user_settings.dart' as _i7;
 import 'package:astrea_server/src/generated/protocol.dart';
 import 'package:astrea_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -129,6 +130,8 @@ class TestEndpoints {
 
   late final _JwtRefreshEndpoint jwtRefresh;
 
+  late final _ChatEndpoint chat;
+
   late final _ReminderEndpoint reminder;
 
   late final _UserSettingsEndpoint userSettings;
@@ -146,6 +149,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     jwtRefresh = _JwtRefreshEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    chat = _ChatEndpoint(
       endpoints,
       serializationManager,
     );
@@ -450,6 +457,52 @@ class _JwtRefreshEndpoint {
   }
 }
 
+class _ChatEndpoint {
+  _ChatEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i5.ChatResponse> send(
+    _i1.TestSessionBuilder sessionBuilder,
+    String message, {
+    String? timezone,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'chat',
+            method: 'send',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'chat',
+          methodName: 'send',
+          parameters: _i1.testObjectToJson({
+            'message': message,
+            'timezone': timezone,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i5.ChatResponse>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _ReminderEndpoint {
   _ReminderEndpoint(
     this._endpointDispatch,
@@ -460,7 +513,7 @@ class _ReminderEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i5.Reminder> create(
+  _i3.Future<_i6.Reminder> create(
     _i1.TestSessionBuilder sessionBuilder, {
     required String title,
     String? description,
@@ -495,7 +548,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.Reminder>);
+                as _i3.Future<_i6.Reminder>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -503,7 +556,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i5.Reminder?> read(
+  _i3.Future<_i6.Reminder?> read(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -526,7 +579,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.Reminder?>);
+                as _i3.Future<_i6.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -534,7 +587,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i5.Reminder?> update(
+  _i3.Future<_i6.Reminder?> update(
     _i1.TestSessionBuilder sessionBuilder,
     int id, {
     String? title,
@@ -571,7 +624,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.Reminder?>);
+                as _i3.Future<_i6.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -610,7 +663,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<List<_i5.Reminder>> list(
+  _i3.Future<List<_i6.Reminder>> list(
     _i1.TestSessionBuilder sessionBuilder, {
     bool? includeCompleted,
     int? limit,
@@ -639,7 +692,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Reminder>>);
+                as _i3.Future<List<_i6.Reminder>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -647,7 +700,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i5.Reminder?> complete(
+  _i3.Future<_i6.Reminder?> complete(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -670,7 +723,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.Reminder?>);
+                as _i3.Future<_i6.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -678,7 +731,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i5.Reminder?> snooze(
+  _i3.Future<_i6.Reminder?> snooze(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
     int minutes,
@@ -705,7 +758,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i5.Reminder?>);
+                as _i3.Future<_i6.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -713,7 +766,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<List<_i5.Reminder>> listDue(
+  _i3.Future<List<_i6.Reminder>> listDue(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -735,7 +788,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i5.Reminder>>);
+                as _i3.Future<List<_i6.Reminder>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -754,7 +807,7 @@ class _UserSettingsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.UserSettings> get(
+  _i3.Future<_i7.UserSettings> get(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -776,7 +829,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.UserSettings>);
+                as _i3.Future<_i7.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -784,7 +837,7 @@ class _UserSettingsEndpoint {
     });
   }
 
-  _i3.Future<_i6.UserSettings> update(
+  _i3.Future<_i7.UserSettings> update(
     _i1.TestSessionBuilder sessionBuilder, {
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
@@ -817,7 +870,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.UserSettings>);
+                as _i3.Future<_i7.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
