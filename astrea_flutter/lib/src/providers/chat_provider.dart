@@ -2,7 +2,9 @@ import 'package:astrea_client/astrea_client.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 
+import '../services/notification_service.dart';
 import 'client_provider.dart';
+import 'reminders_provider.dart';
 
 /// Represents a chat message (user or AI).
 class ChatMessage {
@@ -78,6 +80,23 @@ Future<void> sendChatMessage(WidgetRef ref, String message) async {
     final timezone = await FlutterTimezone.getLocalTimezone();
     final response = await client.chat.send(message, timezone: timezone);
     ref.read(chatMessagesProvider.notifier).addAiMessage(response);
+
+    // Schedule notification if a reminder was created
+    if (response.intent == 'create' &&
+        response.actionReminderId != null &&
+        response.actionDueAtUtc != null) {
+      await NotificationService.scheduleReminder(
+        reminderId: response.actionReminderId!,
+        title: response.actionTitle ?? 'Reminder',
+        body: response.actionDescription,
+        scheduledTime: response.actionDueAtUtc!,
+      );
+    }
+
+    // Refresh reminders list if an action was performed
+    if (response.actionParsed) {
+      ref.invalidate(remindersProvider);
+    }
   } catch (e) {
     // Add error as AI message
     ref

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/client_provider.dart';
 import '../../providers/reminders_provider.dart';
+import '../../services/notification_service.dart';
 import '../../theme/astrea_colors.dart';
 import '../../widgets/reminder_card.dart';
 
@@ -213,6 +214,7 @@ class RemindersPage extends ConsumerWidget {
     if (id == null) return; // Guard against optimistic/unsaved reminders
     final client = ref.read(clientProvider);
     await client.reminder.complete(id);
+    await NotificationService.cancelReminder(id);
     ref.invalidate(remindersProvider);
   }
 
@@ -221,6 +223,7 @@ class RemindersPage extends ConsumerWidget {
     if (id == null) return; // Guard against optimistic/unsaved reminders
     final client = ref.read(clientProvider);
     await client.reminder.delete(id);
+    await NotificationService.cancelReminder(id);
     ref.invalidate(remindersProvider);
   }
 }
