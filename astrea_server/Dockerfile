@@ -35,5 +35,5 @@ EXPOSE 8080
 EXPOSE 8081
 EXPOSE 8082
 
-# Define the entrypoint command
-ENTRYPOINT ./server --mode=$runmode --server-id=$serverid --logging=$logging --role=$role
+# Define the entrypoint command (with --apply-migrations to create/update database tables)
+ENTRYPOINT ./server --mode=$runmode --server-id=$serverid --logging=$logging --role=$role --apply-migrations

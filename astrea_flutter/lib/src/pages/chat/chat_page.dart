@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/chat_provider.dart';
-import '../../services/notification_service.dart';
 import '../../theme/astrea_colors.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/chat_input.dart';
@@ -172,11 +171,6 @@ class _ChatViewState extends ConsumerState<_ChatView> {
                   ),
                 ),
                 tooltip: 'How it works',
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications_active_outlined),
-                onPressed: () => NotificationService.showTestNotification(),
-                tooltip: 'Test notification',
               ),
               if (messages.isNotEmpty)
                 IconButton(
