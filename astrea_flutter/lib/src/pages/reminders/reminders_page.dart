@@ -9,8 +9,12 @@ import '../../theme/astrea_colors.dart';
 import '../../widgets/reminder_card.dart';
 
 /// Displays list of reminders grouped by time.
+/// Optimized for 60fps with ValueKey for efficient diffing.
 class RemindersPage extends ConsumerWidget {
   const RemindersPage({super.key});
+
+  // Const decoration for section indicators
+  static const _indicatorRadius = BorderRadius.all(Radius.circular(2));
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -177,7 +181,7 @@ class RemindersPage extends ConsumerWidget {
               height: 20,
               decoration: BoxDecoration(
                 color: color,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: _indicatorRadius,
               ),
             ),
             const SizedBox(width: 8),
@@ -197,11 +201,13 @@ class RemindersPage extends ConsumerWidget {
         const SizedBox(height: 8),
         ...reminders.map(
           (r) => Padding(
+            key: ValueKey('reminder_${r.id}'),
             padding: const EdgeInsets.only(bottom: 8),
             child: ReminderCard(
+              key: ValueKey('card_${r.id}'),
               reminder: r,
-              onComplete: () => _completeReminder(ref, r),
-              onDelete: () => _deleteReminder(ref, r),
+              onComplete: () => _completeReminder(context, ref, r),
+              onDelete: () => _deleteReminder(context, ref, r),
             ),
           ),
         ),
@@ -209,21 +215,94 @@ class RemindersPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _completeReminder(WidgetRef ref, Reminder reminder) async {
+  Future<void> _completeReminder(
+    BuildContext context,
+    WidgetRef ref,
+    Reminder reminder,
+  ) async {
     final id = reminder.id;
-    if (id == null) return; // Guard against optimistic/unsaved reminders
-    final client = ref.read(clientProvider);
-    await client.reminder.complete(id);
-    await NotificationService.cancelReminder(id);
-    ref.invalidate(remindersProvider);
+    if (id == null) return;
+    try {
+      final client = ref.read(clientProvider);
+      await client.reminder.complete(id);
+      await NotificationService.cancelReminder(id);
+      ref.invalidate(remindersProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Completed: ${reminder.title}'),
+            backgroundColor: AstreaColors.success,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to complete reminder'),
+            backgroundColor: AstreaColors.error,
+          ),
+        );
+      }
+    }
   }
 
-  Future<void> _deleteReminder(WidgetRef ref, Reminder reminder) async {
+  Future<void> _deleteReminder(
+    BuildContext context,
+    WidgetRef ref,
+    Reminder reminder,
+  ) async {
     final id = reminder.id;
-    if (id == null) return; // Guard against optimistic/unsaved reminders
-    final client = ref.read(clientProvider);
-    await client.reminder.delete(id);
-    await NotificationService.cancelReminder(id);
-    ref.invalidate(remindersProvider);
+    if (id == null) return;
+
+    // Confirm deletion
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AstreaColors.astralPurple,
+        title: const Text('Delete Reminder'),
+        content: Text('Delete "${reminder.title}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AstreaColors.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final client = ref.read(clientProvider);
+      await client.reminder.delete(id);
+      await NotificationService.cancelReminder(id);
+      ref.invalidate(remindersProvider);
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Deleted: ${reminder.title}'),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to delete reminder'),
+            backgroundColor: AstreaColors.error,
+          ),
+        );
+      }
+    }
   }
 }

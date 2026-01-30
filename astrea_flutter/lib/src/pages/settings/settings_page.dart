@@ -113,7 +113,14 @@ class _SettingsContentState extends ConsumerState<_SettingsContent> {
           subtitle: const Text('1.0.0'),
         ),
         ListTile(
-          leading: const Icon(Icons.star_rounded),
+          leading: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Image.asset(
+              'assets/icon/app_icon.png',
+              width: 24,
+              height: 24,
+            ),
+          ),
           title: const Text('About Astrea'),
           subtitle: const Text('AI-powered reminder assistant'),
           onTap: () => _showAboutDialog(context),
@@ -224,14 +231,18 @@ class _SettingsContentState extends ConsumerState<_SettingsContent> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AstreaColors.astralPurple,
-        title: const Row(
+        title: Row(
           children: [
-            Icon(
-              Icons.star_rounded,
-              color: AstreaColors.starlightCyan,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.asset(
+                'assets/icon/app_icon.png',
+                width: 28,
+                height: 28,
+              ),
             ),
-            SizedBox(width: 8),
-            Text('Astrea'),
+            const SizedBox(width: 8),
+            const Text('Astrea'),
           ],
         ),
         content: const Text(

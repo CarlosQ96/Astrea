@@ -12,15 +12,17 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import 'chat_response.dart' as _i2;
-import 'reminder.dart' as _i3;
-import 'reminder_sync_event.dart' as _i4;
-import 'user_settings.dart' as _i5;
-import 'package:astrea_client/src/protocol/reminder.dart' as _i6;
+import 'device_token.dart' as _i3;
+import 'reminder.dart' as _i4;
+import 'reminder_sync_event.dart' as _i5;
+import 'user_settings.dart' as _i6;
+import 'package:astrea_client/src/protocol/reminder.dart' as _i7;
 import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
-    as _i7;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i8;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i9;
 export 'chat_response.dart';
+export 'device_token.dart';
 export 'reminder.dart';
 export 'reminder_sync_event.dart';
 export 'user_settings.dart';
@@ -63,36 +65,42 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i2.ChatResponse) {
       return _i2.ChatResponse.fromJson(data) as T;
     }
-    if (t == _i3.Reminder) {
-      return _i3.Reminder.fromJson(data) as T;
+    if (t == _i3.DeviceToken) {
+      return _i3.DeviceToken.fromJson(data) as T;
     }
-    if (t == _i4.ReminderSyncEvent) {
-      return _i4.ReminderSyncEvent.fromJson(data) as T;
+    if (t == _i4.Reminder) {
+      return _i4.Reminder.fromJson(data) as T;
     }
-    if (t == _i5.UserSettings) {
-      return _i5.UserSettings.fromJson(data) as T;
+    if (t == _i5.ReminderSyncEvent) {
+      return _i5.ReminderSyncEvent.fromJson(data) as T;
+    }
+    if (t == _i6.UserSettings) {
+      return _i6.UserSettings.fromJson(data) as T;
     }
     if (t == _i1.getType<_i2.ChatResponse?>()) {
       return (data != null ? _i2.ChatResponse.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i3.Reminder?>()) {
-      return (data != null ? _i3.Reminder.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i3.DeviceToken?>()) {
+      return (data != null ? _i3.DeviceToken.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i4.ReminderSyncEvent?>()) {
-      return (data != null ? _i4.ReminderSyncEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i4.Reminder?>()) {
+      return (data != null ? _i4.Reminder.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i5.UserSettings?>()) {
-      return (data != null ? _i5.UserSettings.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i5.ReminderSyncEvent?>()) {
+      return (data != null ? _i5.ReminderSyncEvent.fromJson(data) : null) as T;
     }
-    if (t == List<_i6.Reminder>) {
-      return (data as List).map((e) => deserialize<_i6.Reminder>(e)).toList()
+    if (t == _i1.getType<_i6.UserSettings?>()) {
+      return (data != null ? _i6.UserSettings.fromJson(data) : null) as T;
+    }
+    if (t == List<_i7.Reminder>) {
+      return (data as List).map((e) => deserialize<_i7.Reminder>(e)).toList()
           as T;
     }
     try {
-      return _i7.Protocol().deserialize<T>(data, t);
+      return _i8.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     try {
-      return _i8.Protocol().deserialize<T>(data, t);
+      return _i9.Protocol().deserialize<T>(data, t);
     } on _i1.DeserializationTypeNotFoundException catch (_) {}
     return super.deserialize<T>(data, t);
   }
@@ -100,9 +108,10 @@ class Protocol extends _i1.SerializationManager {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _i2.ChatResponse => 'ChatResponse',
-      _i3.Reminder => 'Reminder',
-      _i4.ReminderSyncEvent => 'ReminderSyncEvent',
-      _i5.UserSettings => 'UserSettings',
+      _i3.DeviceToken => 'DeviceToken',
+      _i4.Reminder => 'Reminder',
+      _i5.ReminderSyncEvent => 'ReminderSyncEvent',
+      _i6.UserSettings => 'UserSettings',
       _ => null,
     };
   }
@@ -119,18 +128,20 @@ class Protocol extends _i1.SerializationManager {
     switch (data) {
       case _i2.ChatResponse():
         return 'ChatResponse';
-      case _i3.Reminder():
+      case _i3.DeviceToken():
+        return 'DeviceToken';
+      case _i4.Reminder():
         return 'Reminder';
-      case _i4.ReminderSyncEvent():
+      case _i5.ReminderSyncEvent():
         return 'ReminderSyncEvent';
-      case _i5.UserSettings():
+      case _i6.UserSettings():
         return 'UserSettings';
     }
-    className = _i7.Protocol().getClassNameForObject(data);
+    className = _i8.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_idp.$className';
     }
-    className = _i8.Protocol().getClassNameForObject(data);
+    className = _i9.Protocol().getClassNameForObject(data);
     if (className != null) {
       return 'serverpod_auth_core.$className';
     }
@@ -146,22 +157,25 @@ class Protocol extends _i1.SerializationManager {
     if (dataClassName == 'ChatResponse') {
       return deserialize<_i2.ChatResponse>(data['data']);
     }
+    if (dataClassName == 'DeviceToken') {
+      return deserialize<_i3.DeviceToken>(data['data']);
+    }
     if (dataClassName == 'Reminder') {
-      return deserialize<_i3.Reminder>(data['data']);
+      return deserialize<_i4.Reminder>(data['data']);
     }
     if (dataClassName == 'ReminderSyncEvent') {
-      return deserialize<_i4.ReminderSyncEvent>(data['data']);
+      return deserialize<_i5.ReminderSyncEvent>(data['data']);
     }
     if (dataClassName == 'UserSettings') {
-      return deserialize<_i5.UserSettings>(data['data']);
+      return deserialize<_i6.UserSettings>(data['data']);
     }
     if (dataClassName.startsWith('serverpod_auth_idp.')) {
       data['className'] = dataClassName.substring(19);
-      return _i7.Protocol().deserializeByClassName(data);
+      return _i8.Protocol().deserializeByClassName(data);
     }
     if (dataClassName.startsWith('serverpod_auth_core.')) {
       data['className'] = dataClassName.substring(20);
-      return _i8.Protocol().deserializeByClassName(data);
+      return _i9.Protocol().deserializeByClassName(data);
     }
     return super.deserializeByClassName(data);
   }
@@ -176,10 +190,10 @@ class Protocol extends _i1.SerializationManager {
       return null;
     }
     try {
-      return _i7.Protocol().mapRecordToJson(record);
+      return _i8.Protocol().mapRecordToJson(record);
     } catch (_) {}
     try {
-      return _i8.Protocol().mapRecordToJson(record);
+      return _i9.Protocol().mapRecordToJson(record);
     } catch (_) {}
     throw Exception('Unsupported record type ${record.runtimeType}');
   }

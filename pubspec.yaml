@@ -11,5 +11,5 @@ dev_dependencies:
 
 lint_staged:
   '**/*.dart':
-    - dart format --set-exit-if-changed
+    - dart format
     - dart analyze --fatal-infos

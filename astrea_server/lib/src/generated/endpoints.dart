@@ -14,13 +14,14 @@ import 'package:serverpod/serverpod.dart' as _i1;
 import '../auth/email_idp_endpoint.dart' as _i2;
 import '../auth/jwt_refresh_endpoint.dart' as _i3;
 import '../endpoints/chat_endpoint.dart' as _i4;
-import '../endpoints/reminder_endpoint.dart' as _i5;
-import '../endpoints/sync_endpoint.dart' as _i6;
-import '../endpoints/user_settings_endpoint.dart' as _i7;
+import '../endpoints/device_token_endpoint.dart' as _i5;
+import '../endpoints/reminder_endpoint.dart' as _i6;
+import '../endpoints/sync_endpoint.dart' as _i7;
+import '../endpoints/user_settings_endpoint.dart' as _i8;
 import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
-    as _i8;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i9;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i10;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -44,19 +45,25 @@ class Endpoints extends _i1.EndpointDispatch {
           'chat',
           null,
         ),
-      'reminder': _i5.ReminderEndpoint()
+      'deviceToken': _i5.DeviceTokenEndpoint()
+        ..initialize(
+          server,
+          'deviceToken',
+          null,
+        ),
+      'reminder': _i6.ReminderEndpoint()
         ..initialize(
           server,
           'reminder',
           null,
         ),
-      'sync': _i6.SyncEndpoint()
+      'sync': _i7.SyncEndpoint()
         ..initialize(
           server,
           'sync',
           null,
         ),
-      'userSettings': _i7.UserSettingsEndpoint()
+      'userSettings': _i8.UserSettingsEndpoint()
         ..initialize(
           server,
           'userSettings',
@@ -287,6 +294,72 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
+    connectors['deviceToken'] = _i1.EndpointConnector(
+      name: 'deviceToken',
+      endpoint: endpoints['deviceToken']!,
+      methodConnectors: {
+        'register': _i1.MethodConnector(
+          name: 'register',
+          params: {
+            'token': _i1.ParameterDescription(
+              name: 'token',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'platform': _i1.ParameterDescription(
+              name: 'platform',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+            'deviceId': _i1.ParameterDescription(
+              name: 'deviceId',
+              type: _i1.getType<String?>(),
+              nullable: true,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['deviceToken'] as _i5.DeviceTokenEndpoint)
+                  .register(
+                    session,
+                    token: params['token'],
+                    platform: params['platform'],
+                    deviceId: params['deviceId'],
+                  ),
+        ),
+        'unregister': _i1.MethodConnector(
+          name: 'unregister',
+          params: {
+            'token': _i1.ParameterDescription(
+              name: 'token',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['deviceToken'] as _i5.DeviceTokenEndpoint)
+                  .unregister(
+                    session,
+                    params['token'],
+                  ),
+        ),
+        'unregisterAll': _i1.MethodConnector(
+          name: 'unregisterAll',
+          params: {},
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['deviceToken'] as _i5.DeviceTokenEndpoint)
+                  .unregisterAll(session),
+        ),
+      },
+    );
     connectors['reminder'] = _i1.EndpointConnector(
       name: 'reminder',
       endpoint: endpoints['reminder']!,
@@ -329,7 +402,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).create(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).create(
                 session,
                 title: params['title'],
                 description: params['description'],
@@ -352,7 +425,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).read(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).read(
                 session,
                 params['id'],
               ),
@@ -400,7 +473,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).update(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).update(
                 session,
                 params['id'],
                 title: params['title'],
@@ -424,7 +497,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).delete(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).delete(
                 session,
                 params['id'],
               ),
@@ -452,7 +525,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).list(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).list(
                 session,
                 includeCompleted: params['includeCompleted'],
                 limit: params['limit'],
@@ -473,7 +546,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
               ) async =>
-                  (endpoints['reminder'] as _i5.ReminderEndpoint).complete(
+                  (endpoints['reminder'] as _i6.ReminderEndpoint).complete(
                     session,
                     params['id'],
                   ),
@@ -496,7 +569,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint).snooze(
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint).snooze(
                 session,
                 params['id'],
                 params['minutes'],
@@ -509,7 +582,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['reminder'] as _i5.ReminderEndpoint)
+              ) async => (endpoints['reminder'] as _i6.ReminderEndpoint)
                   .listDue(session),
         ),
       },
@@ -528,7 +601,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 _i1.Session session,
                 Map<String, dynamic> params,
                 Map<String, Stream> streamParams,
-              ) => (endpoints['sync'] as _i6.SyncEndpoint).subscribeToReminders(
+              ) => (endpoints['sync'] as _i7.SyncEndpoint).subscribeToReminders(
                 session,
               ),
         ),
@@ -545,7 +618,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['userSettings'] as _i7.UserSettingsEndpoint)
+              ) async => (endpoints['userSettings'] as _i8.UserSettingsEndpoint)
                   .get(session),
         ),
         'update': _i1.MethodConnector(
@@ -581,7 +654,7 @@ class Endpoints extends _i1.EndpointDispatch {
               (
                 _i1.Session session,
                 Map<String, dynamic> params,
-              ) async => (endpoints['userSettings'] as _i7.UserSettingsEndpoint)
+              ) async => (endpoints['userSettings'] as _i8.UserSettingsEndpoint)
                   .update(
                     session,
                     defaultSnoozeMinutes: params['defaultSnoozeMinutes'],
@@ -593,9 +666,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i8.Endpoints()
+    modules['serverpod_auth_idp'] = _i9.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i9.Endpoints()
+    modules['serverpod_auth_core'] = _i10.Endpoints()
       ..initializeEndpoints(server);
   }
 }

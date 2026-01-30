@@ -17,11 +17,13 @@ import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'chat_response.dart' as _i5;
-import 'reminder.dart' as _i6;
-import 'reminder_sync_event.dart' as _i7;
-import 'user_settings.dart' as _i8;
-import 'package:astrea_server/src/generated/reminder.dart' as _i9;
+import 'device_token.dart' as _i6;
+import 'reminder.dart' as _i7;
+import 'reminder_sync_event.dart' as _i8;
+import 'user_settings.dart' as _i9;
+import 'package:astrea_server/src/generated/reminder.dart' as _i10;
 export 'chat_response.dart';
+export 'device_token.dart';
 export 'reminder.dart';
 export 'reminder_sync_event.dart';
 export 'user_settings.dart';
@@ -34,6 +36,106 @@ class Protocol extends _i1.SerializationManagerServer {
   static final Protocol _instance = Protocol._();
 
   static final List<_i2.TableDefinition> targetTableDefinitions = [
+    _i2.TableDefinition(
+      name: 'device_tokens',
+      dartName: 'DeviceToken',
+      schema: 'public',
+      module: 'astrea',
+      columns: [
+        _i2.ColumnDefinition(
+          name: 'id',
+          columnType: _i2.ColumnType.bigint,
+          isNullable: false,
+          dartType: 'int?',
+          columnDefault: 'nextval(\'device_tokens_id_seq\'::regclass)',
+        ),
+        _i2.ColumnDefinition(
+          name: 'userId',
+          columnType: _i2.ColumnType.uuid,
+          isNullable: false,
+          dartType: 'UuidValue',
+        ),
+        _i2.ColumnDefinition(
+          name: 'token',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'platform',
+          columnType: _i2.ColumnType.text,
+          isNullable: false,
+          dartType: 'String',
+        ),
+        _i2.ColumnDefinition(
+          name: 'deviceId',
+          columnType: _i2.ColumnType.text,
+          isNullable: true,
+          dartType: 'String?',
+        ),
+        _i2.ColumnDefinition(
+          name: 'createdAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+        _i2.ColumnDefinition(
+          name: 'updatedAt',
+          columnType: _i2.ColumnType.timestampWithoutTimeZone,
+          isNullable: false,
+          dartType: 'DateTime',
+          columnDefault: 'CURRENT_TIMESTAMP',
+        ),
+      ],
+      foreignKeys: [],
+      indexes: [
+        _i2.IndexDefinition(
+          indexName: 'device_tokens_pkey',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'id',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: true,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'device_token_user_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+          ],
+          type: 'btree',
+          isUnique: false,
+          isPrimary: false,
+        ),
+        _i2.IndexDefinition(
+          indexName: 'device_token_unique_idx',
+          tableSpace: null,
+          elements: [
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'userId',
+            ),
+            _i2.IndexElementDefinition(
+              type: _i2.IndexElementDefinitionType.column,
+              definition: 'token',
+            ),
+          ],
+          type: 'btree',
+          isUnique: true,
+          isPrimary: false,
+        ),
+      ],
+      managed: true,
+    ),
     _i2.TableDefinition(
       name: 'reminders',
       dartName: 'Reminder',
@@ -309,29 +411,35 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i5.ChatResponse) {
       return _i5.ChatResponse.fromJson(data) as T;
     }
-    if (t == _i6.Reminder) {
-      return _i6.Reminder.fromJson(data) as T;
+    if (t == _i6.DeviceToken) {
+      return _i6.DeviceToken.fromJson(data) as T;
     }
-    if (t == _i7.ReminderSyncEvent) {
-      return _i7.ReminderSyncEvent.fromJson(data) as T;
+    if (t == _i7.Reminder) {
+      return _i7.Reminder.fromJson(data) as T;
     }
-    if (t == _i8.UserSettings) {
-      return _i8.UserSettings.fromJson(data) as T;
+    if (t == _i8.ReminderSyncEvent) {
+      return _i8.ReminderSyncEvent.fromJson(data) as T;
+    }
+    if (t == _i9.UserSettings) {
+      return _i9.UserSettings.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.ChatResponse?>()) {
       return (data != null ? _i5.ChatResponse.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i6.Reminder?>()) {
-      return (data != null ? _i6.Reminder.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i6.DeviceToken?>()) {
+      return (data != null ? _i6.DeviceToken.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i7.ReminderSyncEvent?>()) {
-      return (data != null ? _i7.ReminderSyncEvent.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i7.Reminder?>()) {
+      return (data != null ? _i7.Reminder.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i8.UserSettings?>()) {
-      return (data != null ? _i8.UserSettings.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i8.ReminderSyncEvent?>()) {
+      return (data != null ? _i8.ReminderSyncEvent.fromJson(data) : null) as T;
     }
-    if (t == List<_i9.Reminder>) {
-      return (data as List).map((e) => deserialize<_i9.Reminder>(e)).toList()
+    if (t == _i1.getType<_i9.UserSettings?>()) {
+      return (data != null ? _i9.UserSettings.fromJson(data) : null) as T;
+    }
+    if (t == List<_i10.Reminder>) {
+      return (data as List).map((e) => deserialize<_i10.Reminder>(e)).toList()
           as T;
     }
     try {
@@ -349,9 +457,10 @@ class Protocol extends _i1.SerializationManagerServer {
   static String? getClassNameForType(Type type) {
     return switch (type) {
       _i5.ChatResponse => 'ChatResponse',
-      _i6.Reminder => 'Reminder',
-      _i7.ReminderSyncEvent => 'ReminderSyncEvent',
-      _i8.UserSettings => 'UserSettings',
+      _i6.DeviceToken => 'DeviceToken',
+      _i7.Reminder => 'Reminder',
+      _i8.ReminderSyncEvent => 'ReminderSyncEvent',
+      _i9.UserSettings => 'UserSettings',
       _ => null,
     };
   }
@@ -368,11 +477,13 @@ class Protocol extends _i1.SerializationManagerServer {
     switch (data) {
       case _i5.ChatResponse():
         return 'ChatResponse';
-      case _i6.Reminder():
+      case _i6.DeviceToken():
+        return 'DeviceToken';
+      case _i7.Reminder():
         return 'Reminder';
-      case _i7.ReminderSyncEvent():
+      case _i8.ReminderSyncEvent():
         return 'ReminderSyncEvent';
-      case _i8.UserSettings():
+      case _i9.UserSettings():
         return 'UserSettings';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -399,14 +510,17 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'ChatResponse') {
       return deserialize<_i5.ChatResponse>(data['data']);
     }
+    if (dataClassName == 'DeviceToken') {
+      return deserialize<_i6.DeviceToken>(data['data']);
+    }
     if (dataClassName == 'Reminder') {
-      return deserialize<_i6.Reminder>(data['data']);
+      return deserialize<_i7.Reminder>(data['data']);
     }
     if (dataClassName == 'ReminderSyncEvent') {
-      return deserialize<_i7.ReminderSyncEvent>(data['data']);
+      return deserialize<_i8.ReminderSyncEvent>(data['data']);
     }
     if (dataClassName == 'UserSettings') {
-      return deserialize<_i8.UserSettings>(data['data']);
+      return deserialize<_i9.UserSettings>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -444,10 +558,12 @@ class Protocol extends _i1.SerializationManagerServer {
       }
     }
     switch (t) {
-      case _i6.Reminder:
-        return _i6.Reminder.t;
-      case _i8.UserSettings:
-        return _i8.UserSettings.t;
+      case _i6.DeviceToken:
+        return _i6.DeviceToken.t;
+      case _i7.Reminder:
+        return _i7.Reminder.t;
+      case _i9.UserSettings:
+        return _i9.UserSettings.t;
     }
     return null;
   }

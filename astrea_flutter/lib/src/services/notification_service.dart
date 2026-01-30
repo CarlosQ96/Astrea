@@ -20,10 +20,11 @@ class NotificationService {
           channelDescription: 'Notification channel for reminder alerts',
           defaultColor: AstreaColors.starlightCyan,
           ledColor: AstreaColors.starlightCyan,
-          importance: NotificationImportance.High,
+          importance: NotificationImportance.Max,
           channelShowBadge: true,
           playSound: true,
           enableVibration: true,
+          criticalAlerts: true,
         ),
       ],
       channelGroups: [
@@ -88,6 +89,8 @@ class NotificationService {
         category: NotificationCategory.Reminder,
         notificationLayout: NotificationLayout.Default,
         autoDismissible: false,
+        displayOnForeground: true,
+        displayOnBackground: true,
         payload: {
           'reminderId': reminderId.toString(),
         },
@@ -124,6 +127,8 @@ class NotificationService {
         wakeUpScreen: true,
         category: NotificationCategory.Reminder,
         notificationLayout: NotificationLayout.Default,
+        displayOnForeground: true,
+        displayOnBackground: true,
       ),
     );
   }

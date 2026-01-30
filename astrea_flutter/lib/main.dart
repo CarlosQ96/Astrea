@@ -1,19 +1,29 @@
 import 'package:astrea_client/astrea_client.dart';
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
+import 'firebase_options.dart';
 import 'src/pages/auth/auth_wrapper.dart';
 import 'src/providers/client_provider.dart';
+import 'src/providers/reminders_provider.dart';
+import 'src/services/fcm_service.dart';
 import 'src/services/notification_service.dart';
 import 'src/theme/astrea_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize notifications and request permissions early
+  // Initialize Firebase for push notifications
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  await FcmService.initialize();
+
+  // Initialize local notifications and request permissions
   await NotificationService.initialize();
   await NotificationService.requestPermissions();
 
@@ -22,6 +32,9 @@ void main() async {
   final client = Client(serverUrl)
     ..connectivityMonitor = FlutterConnectivityMonitor()
     ..authSessionManager = FlutterAuthSessionManager();
+
+  // Set client for FCM service
+  FcmService.setClient(client);
 
   // Initialize auth in background - don't block app startup
   client.auth.initialize();
@@ -36,14 +49,14 @@ void main() async {
   );
 }
 
-class AstreaApp extends StatefulWidget {
+class AstreaApp extends ConsumerStatefulWidget {
   const AstreaApp({super.key});
 
   @override
-  State<AstreaApp> createState() => _AstreaAppState();
+  ConsumerState<AstreaApp> createState() => _AstreaAppState();
 }
 
-class _AstreaAppState extends State<AstreaApp> {
+class _AstreaAppState extends ConsumerState<AstreaApp> {
   @override
   void initState() {
     super.initState();
@@ -51,6 +64,12 @@ class _AstreaAppState extends State<AstreaApp> {
     NotificationService.setListeners(
       onActionReceived: _handleNotificationAction,
     );
+
+    // Set up FCM sync callback to refresh reminders
+    FcmService.setOnSyncEvent((data) {
+      debugPrint('FCM sync event received: $data');
+      ref.invalidate(remindersProvider);
+    });
   }
 
   Future<void> _handleNotificationAction(ReceivedAction action) async {

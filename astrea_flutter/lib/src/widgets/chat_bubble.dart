@@ -4,8 +4,27 @@ import '../providers/chat_provider.dart';
 import '../theme/astrea_colors.dart';
 
 /// Displays a single chat message bubble.
+/// Optimized for 60fps with const decorations.
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
+
+  // Const decorations for performance
+  static const _userBorderRadius = BorderRadius.only(
+    topLeft: Radius.circular(16),
+    topRight: Radius.circular(16),
+    bottomLeft: Radius.circular(16),
+    bottomRight: Radius.circular(4),
+  );
+  static const _aiBorderRadius = BorderRadius.only(
+    topLeft: Radius.circular(16),
+    topRight: Radius.circular(16),
+    bottomLeft: Radius.circular(4),
+    bottomRight: Radius.circular(16),
+  );
+  static const _actionBadgeRadius = BorderRadius.all(Radius.circular(8));
+  static const _aiBorder = Border.fromBorderSide(
+    BorderSide(color: AstreaColors.mysticViolet, width: 1),
+  );
 
   const ChatBubble({super.key, required this.message});
 
@@ -22,13 +41,12 @@ class ChatBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!isUser) ...[
-            const CircleAvatar(
-              radius: 16,
-              backgroundColor: AstreaColors.starlightCyan,
-              child: Icon(
-                Icons.star_rounded,
-                size: 18,
-                color: AstreaColors.deepVoid,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                'assets/icon/app_icon.png',
+                width: 32,
+                height: 32,
               ),
             ),
             const SizedBox(width: 8),
@@ -40,18 +58,8 @@ class ChatBubble extends StatelessWidget {
                 color: isUser
                     ? AstreaColors.starlightCyan
                     : AstreaColors.astralPurple,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
-                ),
-                border: isUser
-                    ? null
-                    : Border.all(
-                        color: AstreaColors.mysticViolet,
-                        width: 1,
-                      ),
+                borderRadius: isUser ? _userBorderRadius : _aiBorderRadius,
+                border: isUser ? null : _aiBorder,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,7 +81,7 @@ class ChatBubble extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AstreaColors.success.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: _actionBadgeRadius,
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,

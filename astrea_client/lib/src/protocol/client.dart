@@ -17,10 +17,11 @@ import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
     as _i4;
 import 'package:astrea_client/src/protocol/chat_response.dart' as _i5;
-import 'package:astrea_client/src/protocol/reminder.dart' as _i6;
-import 'package:astrea_client/src/protocol/reminder_sync_event.dart' as _i7;
-import 'package:astrea_client/src/protocol/user_settings.dart' as _i8;
-import 'protocol.dart' as _i9;
+import 'package:astrea_client/src/protocol/device_token.dart' as _i6;
+import 'package:astrea_client/src/protocol/reminder.dart' as _i7;
+import 'package:astrea_client/src/protocol/reminder_sync_event.dart' as _i8;
+import 'package:astrea_client/src/protocol/user_settings.dart' as _i9;
+import 'protocol.dart' as _i10;
 
 /// By extending [EmailIdpBaseEndpoint], the email identity provider endpoints
 /// are made available on the server and enable the corresponding sign-in widget
@@ -258,6 +259,45 @@ class EndpointChat extends _i2.EndpointRef {
   );
 }
 
+/// Manages FCM device tokens for push notifications.
+/// {@category Endpoint}
+class EndpointDeviceToken extends _i2.EndpointRef {
+  EndpointDeviceToken(_i2.EndpointCaller caller) : super(caller);
+
+  @override
+  String get name => 'deviceToken';
+
+  /// Register a device token for push notifications.
+  /// Updates existing token if already registered, or creates new.
+  _i3.Future<_i6.DeviceToken> register({
+    required String token,
+    required String platform,
+    String? deviceId,
+  }) => caller.callServerEndpoint<_i6.DeviceToken>(
+    'deviceToken',
+    'register',
+    {
+      'token': token,
+      'platform': platform,
+      'deviceId': deviceId,
+    },
+  );
+
+  /// Unregister a device token (e.g., on logout).
+  _i3.Future<bool> unregister(String token) => caller.callServerEndpoint<bool>(
+    'deviceToken',
+    'unregister',
+    {'token': token},
+  );
+
+  /// Unregister all tokens for the current user (e.g., on account deletion).
+  _i3.Future<int> unregisterAll() => caller.callServerEndpoint<int>(
+    'deviceToken',
+    'unregisterAll',
+    {},
+  );
+}
+
 /// {@category Endpoint}
 class EndpointReminder extends _i2.EndpointRef {
   EndpointReminder(_i2.EndpointCaller caller) : super(caller);
@@ -265,14 +305,14 @@ class EndpointReminder extends _i2.EndpointRef {
   @override
   String get name => 'reminder';
 
-  _i3.Future<_i6.Reminder> create({
+  _i3.Future<_i7.Reminder> create({
     required String title,
     String? description,
     required DateTime dueAtUtc,
     required String originalTimezone,
     String? repeatRule,
     int? priority,
-  }) => caller.callServerEndpoint<_i6.Reminder>(
+  }) => caller.callServerEndpoint<_i7.Reminder>(
     'reminder',
     'create',
     {
@@ -285,14 +325,14 @@ class EndpointReminder extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<_i6.Reminder?> read(int id) =>
-      caller.callServerEndpoint<_i6.Reminder?>(
+  _i3.Future<_i7.Reminder?> read(int id) =>
+      caller.callServerEndpoint<_i7.Reminder?>(
         'reminder',
         'read',
         {'id': id},
       );
 
-  _i3.Future<_i6.Reminder?> update(
+  _i3.Future<_i7.Reminder?> update(
     int id, {
     String? title,
     String? description,
@@ -300,7 +340,7 @@ class EndpointReminder extends _i2.EndpointRef {
     String? originalTimezone,
     String? repeatRule,
     int? priority,
-  }) => caller.callServerEndpoint<_i6.Reminder?>(
+  }) => caller.callServerEndpoint<_i7.Reminder?>(
     'reminder',
     'update',
     {
@@ -320,11 +360,11 @@ class EndpointReminder extends _i2.EndpointRef {
     {'id': id},
   );
 
-  _i3.Future<List<_i6.Reminder>> list({
+  _i3.Future<List<_i7.Reminder>> list({
     bool? includeCompleted,
     int? limit,
     int? offset,
-  }) => caller.callServerEndpoint<List<_i6.Reminder>>(
+  }) => caller.callServerEndpoint<List<_i7.Reminder>>(
     'reminder',
     'list',
     {
@@ -334,17 +374,17 @@ class EndpointReminder extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<_i6.Reminder?> complete(int id) =>
-      caller.callServerEndpoint<_i6.Reminder?>(
+  _i3.Future<_i7.Reminder?> complete(int id) =>
+      caller.callServerEndpoint<_i7.Reminder?>(
         'reminder',
         'complete',
         {'id': id},
       );
 
-  _i3.Future<_i6.Reminder?> snooze(
+  _i3.Future<_i7.Reminder?> snooze(
     int id,
     int minutes,
-  ) => caller.callServerEndpoint<_i6.Reminder?>(
+  ) => caller.callServerEndpoint<_i7.Reminder?>(
     'reminder',
     'snooze',
     {
@@ -353,8 +393,8 @@ class EndpointReminder extends _i2.EndpointRef {
     },
   );
 
-  _i3.Future<List<_i6.Reminder>> listDue() =>
-      caller.callServerEndpoint<List<_i6.Reminder>>(
+  _i3.Future<List<_i7.Reminder>> listDue() =>
+      caller.callServerEndpoint<List<_i7.Reminder>>(
         'reminder',
         'listDue',
         {},
@@ -374,10 +414,10 @@ class EndpointSync extends _i2.EndpointRef {
   /// Returns a stream of ReminderSyncEvent that the client can listen to.
   ///
   /// Events are filtered to only include reminders owned by the current user.
-  _i3.Stream<_i7.ReminderSyncEvent> subscribeToReminders() =>
+  _i3.Stream<_i8.ReminderSyncEvent> subscribeToReminders() =>
       caller.callStreamingServerEndpoint<
-        _i3.Stream<_i7.ReminderSyncEvent>,
-        _i7.ReminderSyncEvent
+        _i3.Stream<_i8.ReminderSyncEvent>,
+        _i8.ReminderSyncEvent
       >(
         'sync',
         'subscribeToReminders',
@@ -393,20 +433,20 @@ class EndpointUserSettings extends _i2.EndpointRef {
   @override
   String get name => 'userSettings';
 
-  _i3.Future<_i8.UserSettings> get() =>
-      caller.callServerEndpoint<_i8.UserSettings>(
+  _i3.Future<_i9.UserSettings> get() =>
+      caller.callServerEndpoint<_i9.UserSettings>(
         'userSettings',
         'get',
         {},
       );
 
-  _i3.Future<_i8.UserSettings> update({
+  _i3.Future<_i9.UserSettings> update({
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
     String? quietHoursEnd,
     bool? voiceEnabled,
     String? timezone,
-  }) => caller.callServerEndpoint<_i8.UserSettings>(
+  }) => caller.callServerEndpoint<_i9.UserSettings>(
     'userSettings',
     'update',
     {
@@ -450,7 +490,7 @@ class Client extends _i2.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i9.Protocol(),
+         _i10.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,
@@ -462,6 +502,7 @@ class Client extends _i2.ServerpodClientShared {
     emailIdp = EndpointEmailIdp(this);
     jwtRefresh = EndpointJwtRefresh(this);
     chat = EndpointChat(this);
+    deviceToken = EndpointDeviceToken(this);
     reminder = EndpointReminder(this);
     sync = EndpointSync(this);
     userSettings = EndpointUserSettings(this);
@@ -473,6 +514,8 @@ class Client extends _i2.ServerpodClientShared {
   late final EndpointJwtRefresh jwtRefresh;
 
   late final EndpointChat chat;
+
+  late final EndpointDeviceToken deviceToken;
 
   late final EndpointReminder reminder;
 
@@ -487,6 +530,7 @@ class Client extends _i2.ServerpodClientShared {
     'emailIdp': emailIdp,
     'jwtRefresh': jwtRefresh,
     'chat': chat,
+    'deviceToken': deviceToken,
     'reminder': reminder,
     'sync': sync,
     'userSettings': userSettings,

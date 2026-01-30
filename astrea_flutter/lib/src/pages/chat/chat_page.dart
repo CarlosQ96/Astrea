@@ -77,10 +77,13 @@ class _ChatView extends ConsumerWidget {
           color: AstreaColors.deepVoid,
           child: Row(
             children: [
-              const Icon(
-                Icons.star_rounded,
-                color: AstreaColors.starlightCyan,
-                size: 28,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/icon/app_icon.png',
+                  width: 32,
+                  height: 32,
+                ),
               ),
               const SizedBox(width: 12),
               Text(

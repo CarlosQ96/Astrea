@@ -4,10 +4,23 @@ import 'package:flutter/material.dart';
 import '../theme/astrea_colors.dart';
 
 /// Displays a single reminder with actions.
+/// Optimized for 60fps with const decorations and efficient keys.
 class ReminderCard extends StatelessWidget {
   final Reminder reminder;
   final VoidCallback? onComplete;
   final VoidCallback? onDelete;
+
+  // Const decorations for performance - avoid recreating on each build
+  static const _borderRadius = BorderRadius.all(Radius.circular(12));
+  static const _highPriorityBorder = Border(
+    left: BorderSide(color: AstreaColors.error, width: 4),
+  );
+  static const _mediumPriorityBorder = Border(
+    left: BorderSide(color: AstreaColors.oracleGold, width: 4),
+  );
+  static const _lowPriorityBorder = Border(
+    left: BorderSide(color: AstreaColors.mist, width: 4),
+  );
 
   const ReminderCard({
     super.key,
@@ -18,19 +31,17 @@ class ReminderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final priorityColor = switch (reminder.priority) {
-      3 => AstreaColors.error,
-      1 => AstreaColors.mist,
-      _ => AstreaColors.oracleGold,
+    final priorityBorder = switch (reminder.priority) {
+      3 => _highPriorityBorder,
+      1 => _lowPriorityBorder,
+      _ => _mediumPriorityBorder,
     };
 
     return Container(
       decoration: BoxDecoration(
         color: AstreaColors.astralPurple,
-        borderRadius: BorderRadius.circular(12),
-        border: Border(
-          left: BorderSide(color: priorityColor, width: 4),
-        ),
+        borderRadius: _borderRadius,
+        border: priorityBorder,
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

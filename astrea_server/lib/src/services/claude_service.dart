@@ -168,6 +168,8 @@ SNOOZE MAPPING:
 
 When user refers to a reminder like "the mom one" or "groceries", match it to the most relevant reminder by title.
 When user says "the first one", "the second reminder", "my third reminder", etc., use the # number from the reminder list (sorted by creation order).
+When user asks about reminders "today" or "yesterday", filter by the Created timestamp (when they asked you to create it).
+For example: "what was my second reminder today?" = find reminders where Created date matches today, then pick #2 from those.
 If ambiguous, ask for clarification.
 
 Be concise but friendly. Use natural language, not robotic responses.
@@ -197,7 +199,7 @@ Be concise but friendly. Use natural language, not robotic responses.
         _ => 'medium',
       };
       buffer.writeln(
-        '#$order [ID:${r.id}] $status "${r.title}" | Due: ${r.dueAtUtc.toIso8601String()} | Priority: $priority${r.description != null ? ' | Note: ${r.description}' : ''}',
+        '#$order [ID:${r.id}] $status "${r.title}" | Created: ${r.createdAt.toIso8601String()} | Due: ${r.dueAtUtc.toIso8601String()} | Priority: $priority${r.description != null ? ' | Note: ${r.description}' : ''}',
       );
     }
     return buffer.toString();

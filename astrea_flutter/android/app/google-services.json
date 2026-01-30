@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1086311581648",
+    "project_id": "astral-22141",
+    "storage_bucket": "astral-22141.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1086311581648:android:db46b34d82af5e70109bd5",
+        "android_client_info": {
+          "package_name": "com.example.astrea_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDaSmGK6ndz9cD6E1kX6BIYrD1lnqEALYA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

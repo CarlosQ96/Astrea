@@ -17,9 +17,10 @@ import 'dart:async' as _i3;
 import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
     as _i4;
 import 'package:astrea_server/src/generated/chat_response.dart' as _i5;
-import 'package:astrea_server/src/generated/reminder.dart' as _i6;
-import 'package:astrea_server/src/generated/reminder_sync_event.dart' as _i7;
-import 'package:astrea_server/src/generated/user_settings.dart' as _i8;
+import 'package:astrea_server/src/generated/device_token.dart' as _i6;
+import 'package:astrea_server/src/generated/reminder.dart' as _i7;
+import 'package:astrea_server/src/generated/reminder_sync_event.dart' as _i8;
+import 'package:astrea_server/src/generated/user_settings.dart' as _i9;
 import 'package:astrea_server/src/generated/protocol.dart';
 import 'package:astrea_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -133,6 +134,8 @@ class TestEndpoints {
 
   late final _ChatEndpoint chat;
 
+  late final _DeviceTokenEndpoint deviceToken;
+
   late final _ReminderEndpoint reminder;
 
   late final _SyncEndpoint sync;
@@ -156,6 +159,10 @@ class _InternalTestEndpoints extends TestEndpoints
       serializationManager,
     );
     chat = _ChatEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    deviceToken = _DeviceTokenEndpoint(
       endpoints,
       serializationManager,
     );
@@ -510,6 +517,113 @@ class _ChatEndpoint {
   }
 }
 
+class _DeviceTokenEndpoint {
+  _DeviceTokenEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i6.DeviceToken> register(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String token,
+    required String platform,
+    String? deviceId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'deviceToken',
+            method: 'register',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'deviceToken',
+          methodName: 'register',
+          parameters: _i1.testObjectToJson({
+            'token': token,
+            'platform': platform,
+            'deviceId': deviceId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.DeviceToken>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<bool> unregister(
+    _i1.TestSessionBuilder sessionBuilder,
+    String token,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'deviceToken',
+            method: 'unregister',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'deviceToken',
+          methodName: 'unregister',
+          parameters: _i1.testObjectToJson({'token': token}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<bool>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<int> unregisterAll(_i1.TestSessionBuilder sessionBuilder) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'deviceToken',
+            method: 'unregisterAll',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'deviceToken',
+          methodName: 'unregisterAll',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<int>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
 class _ReminderEndpoint {
   _ReminderEndpoint(
     this._endpointDispatch,
@@ -520,7 +634,7 @@ class _ReminderEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i6.Reminder> create(
+  _i3.Future<_i7.Reminder> create(
     _i1.TestSessionBuilder sessionBuilder, {
     required String title,
     String? description,
@@ -555,7 +669,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Reminder>);
+                as _i3.Future<_i7.Reminder>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -563,7 +677,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i6.Reminder?> read(
+  _i3.Future<_i7.Reminder?> read(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -586,7 +700,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Reminder?>);
+                as _i3.Future<_i7.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -594,7 +708,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i6.Reminder?> update(
+  _i3.Future<_i7.Reminder?> update(
     _i1.TestSessionBuilder sessionBuilder,
     int id, {
     String? title,
@@ -631,7 +745,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Reminder?>);
+                as _i3.Future<_i7.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -670,7 +784,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<List<_i6.Reminder>> list(
+  _i3.Future<List<_i7.Reminder>> list(
     _i1.TestSessionBuilder sessionBuilder, {
     bool? includeCompleted,
     int? limit,
@@ -699,7 +813,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.Reminder>>);
+                as _i3.Future<List<_i7.Reminder>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -707,7 +821,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i6.Reminder?> complete(
+  _i3.Future<_i7.Reminder?> complete(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
   ) async {
@@ -730,7 +844,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Reminder?>);
+                as _i3.Future<_i7.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -738,7 +852,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<_i6.Reminder?> snooze(
+  _i3.Future<_i7.Reminder?> snooze(
     _i1.TestSessionBuilder sessionBuilder,
     int id,
     int minutes,
@@ -765,7 +879,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i6.Reminder?>);
+                as _i3.Future<_i7.Reminder?>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -773,7 +887,7 @@ class _ReminderEndpoint {
     });
   }
 
-  _i3.Future<List<_i6.Reminder>> listDue(
+  _i3.Future<List<_i7.Reminder>> listDue(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -795,7 +909,7 @@ class _ReminderEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i6.Reminder>>);
+                as _i3.Future<List<_i7.Reminder>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -814,11 +928,11 @@ class _SyncEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Stream<_i7.ReminderSyncEvent> subscribeToReminders(
+  _i3.Stream<_i8.ReminderSyncEvent> subscribeToReminders(
     _i1.TestSessionBuilder sessionBuilder,
   ) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i7.ReminderSyncEvent>();
+        _i1.TestStreamManager<_i8.ReminderSyncEvent>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -857,7 +971,7 @@ class _UserSettingsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i8.UserSettings> get(
+  _i3.Future<_i9.UserSettings> get(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -879,7 +993,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.UserSettings>);
+                as _i3.Future<_i9.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -887,7 +1001,7 @@ class _UserSettingsEndpoint {
     });
   }
 
-  _i3.Future<_i8.UserSettings> update(
+  _i3.Future<_i9.UserSettings> update(
     _i1.TestSessionBuilder sessionBuilder, {
     int? defaultSnoozeMinutes,
     String? quietHoursStart,
@@ -920,7 +1034,7 @@ class _UserSettingsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.UserSettings>);
+                as _i3.Future<_i9.UserSettings>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/sync_provider.dart';
+import '../../services/fcm_service.dart';
 import '../chat/chat_page.dart';
 import 'login_page.dart';
 
@@ -19,8 +20,12 @@ class AuthWrapper extends ConsumerWidget {
       next.whenData((info) {
         if (info != null) {
           ref.read(syncProvider.notifier).startSync();
+          // Register FCM token for push notifications
+          FcmService.registerToken();
         } else {
           ref.read(syncProvider.notifier).stopSync();
+          // Unregister FCM token on logout
+          FcmService.unregisterToken();
         }
       });
     });

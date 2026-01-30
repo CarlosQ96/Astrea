@@ -1,0 +1,17 @@
+class: DeviceToken
+table: device_tokens
+
+fields:
+  userId: UuidValue
+  token: String              # FCM registration token
+  platform: String           # 'ios', 'android', 'web'
+  deviceId: String?          # Optional device identifier for deduplication
+  createdAt: DateTime, default=now
+  updatedAt: DateTime, default=now
+
+indexes:
+  device_token_user_idx:
+    fields: userId
+  device_token_unique_idx:
+    fields: userId, token
+    unique: true

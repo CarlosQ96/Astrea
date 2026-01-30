@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../services/claude_service.dart';
+import '../services/fcm_service.dart';
 import '../services/exceptions.dart';
 import '../services/intent.dart';
 import '../generated/chat_response.dart';
@@ -152,6 +155,7 @@ class ChatEndpoint extends Endpoint {
     );
     final created = await Reminder.db.insertRow(session, reminder);
     ReminderSyncBroadcaster.notifyCreated(created);
+    unawaited(_sendFcmNotification(session, userId, 'created', created.id!));
     return null;
   }
 
@@ -173,6 +177,7 @@ class ChatEndpoint extends Endpoint {
     );
     final result = await Reminder.db.updateRow(session, updated);
     ReminderSyncBroadcaster.notifyCompleted(result);
+    unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
     return null;
   }
 
@@ -188,6 +193,7 @@ class ChatEndpoint extends Endpoint {
 
     await Reminder.db.deleteRow(session, reminder);
     ReminderSyncBroadcaster.notifyDeleted(reminderId, userId);
+    unawaited(_sendFcmNotification(session, userId, 'deleted', reminderId));
     return null;
   }
 
@@ -210,6 +216,7 @@ class ChatEndpoint extends Endpoint {
     );
     final result = await Reminder.db.updateRow(session, updated);
     ReminderSyncBroadcaster.notifySnoozed(result);
+    unawaited(_sendFcmNotification(session, userId, 'snoozed', result.id!));
     return null;
   }
 
@@ -252,5 +259,27 @@ class ChatEndpoint extends Endpoint {
 
     final settings = UserSettings(userId: userId);
     return await UserSettings.db.insertRow(session, settings);
+  }
+
+  /// Sends FCM push notification for reminder sync (fire-and-forget).
+  Future<void> _sendFcmNotification(
+    Session session,
+    UuidValue userId,
+    String eventType,
+    int reminderId,
+  ) async {
+    try {
+      final fcmService = await FcmService.getInstance(session);
+      if (fcmService != null) {
+        await fcmService.sendSyncEvent(
+          session,
+          userId: userId,
+          eventType: eventType,
+          reminderId: reminderId,
+        );
+      }
+    } catch (e) {
+      session.log('FCM notification failed: $e', level: LogLevel.warning);
+    }
   }
 }

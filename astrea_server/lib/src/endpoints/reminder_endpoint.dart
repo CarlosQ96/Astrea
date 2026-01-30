@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/reminder.dart';
+import '../services/fcm_service.dart';
 import 'sync_endpoint.dart';
 
 class ReminderEndpoint extends Endpoint {
@@ -38,6 +41,7 @@ class ReminderEndpoint extends Endpoint {
 
     final created = await Reminder.db.insertRow(session, reminder);
     ReminderSyncBroadcaster.notifyCreated(created);
+    unawaited(_sendFcmNotification(session, userId, 'created', created.id!));
     return created;
   }
 
@@ -85,6 +89,7 @@ class ReminderEndpoint extends Endpoint {
 
     final result = await Reminder.db.updateRow(session, updated);
     ReminderSyncBroadcaster.notifyUpdated(result);
+    unawaited(_sendFcmNotification(session, userId, 'updated', result.id!));
     return result;
   }
 
@@ -100,6 +105,7 @@ class ReminderEndpoint extends Endpoint {
     final reminderUserId = existing.userId;
     await Reminder.db.deleteRow(session, existing);
     ReminderSyncBroadcaster.notifyDeleted(reminderId, reminderUserId);
+    unawaited(_sendFcmNotification(session, userId, 'deleted', reminderId));
     return true;
   }
 
@@ -142,6 +148,7 @@ class ReminderEndpoint extends Endpoint {
 
     final result = await Reminder.db.updateRow(session, updated);
     ReminderSyncBroadcaster.notifyCompleted(result);
+    unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
     return result;
   }
 
@@ -165,6 +172,7 @@ class ReminderEndpoint extends Endpoint {
 
     final result = await Reminder.db.updateRow(session, updated);
     ReminderSyncBroadcaster.notifySnoozed(result);
+    unawaited(_sendFcmNotification(session, userId, 'snoozed', result.id!));
     return result;
   }
 
@@ -181,5 +189,28 @@ class ReminderEndpoint extends Endpoint {
           (t.snoozedUntilUtc.equals(null) | (t.snoozedUntilUtc <= now)),
       orderBy: (t) => t.dueAtUtc,
     );
+  }
+
+  /// Sends FCM push notification for reminder sync (fire-and-forget).
+  /// Silently ignores errors if session is already closed.
+  Future<void> _sendFcmNotification(
+    Session session,
+    UuidValue userId,
+    String eventType,
+    int reminderId,
+  ) async {
+    try {
+      final fcmService = await FcmService.getInstance(session);
+      if (fcmService != null) {
+        await fcmService.sendSyncEvent(
+          session,
+          userId: userId,
+          eventType: eventType,
+          reminderId: reminderId,
+        );
+      }
+    } catch (e) {
+      // Silently ignore - session may be closed since this runs fire-and-forget
+    }
   }
 }
