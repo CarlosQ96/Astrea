@@ -233,12 +233,55 @@ SERVERPOD_PASSWORD_smtpFromName='Astrea'
 
 ## Architecture
 
-The app uses Serverpod for the backend, which handles:
-- Type-safe client generation
-- WebSocket streaming for real-time sync
-- Database ORM with PostgreSQL
-- Built-in authentication with JWT
+### How Serverpod Powers the Backend
 
-The Flutter app uses Riverpod for state management, keeping the UI reactive to changes from both local actions and server sync events.
+Astrea uses **Serverpod** as the backend framework, taking full advantage of its end-to-end type safety between Dart server and Flutter client.
 
-Claude powers the conversational AI, understanding your intent and extracting reminder details. Gemini generates embeddings for semantic search through your reminders.
+**Type-Safe Client Generation**: When we define an endpoint like `ChatEndpoint.sendMessage()`, Serverpod automatically generates a matching client method. The Flutter app calls `client.chat.sendMessage(...)` with full type checking—no manual API contracts or JSON parsing needed.
+
+**Model Serialization**: Models defined in `.spy.yaml` files (like `Reminder`, `UserSettings`) are automatically serialized for database storage and API transport. Change a field on the server, regenerate, and the Flutter app gets compile-time errors if it's using the old structure.
+
+**WebSocket Streaming for Real-Time Sync**: The `SyncEndpoint` uses Serverpod's streaming capabilities to push reminder changes to all connected clients instantly. When you complete a reminder on one device, the `ReminderSyncBroadcaster` broadcasts the event through WebSockets—no polling required.
+
+**Database ORM**: Serverpod's ORM maps our Dart models directly to PostgreSQL tables. The `Reminder.db.find()`, `Reminder.db.insertRow()` methods provide type-safe database operations with automatic migration support.
+
+**Secure Password Management**: API keys and secrets are stored in `passwords.yaml` locally, and loaded from `SERVERPOD_PASSWORD_*` environment variables in production—never hardcoded.
+
+### How Flutter Consumes the API
+
+The Flutter app connects to Serverpod through the auto-generated `astrea_client` package:
+
+```dart
+// Initialize the client once
+final client = Client(serverUrl);
+
+// Call endpoints with full type safety
+final response = await client.chat.sendMessage(message, history);
+
+// Stream real-time updates
+client.sync.streamReminderEvents().listen((event) {
+  // Update local state when reminders change on any device
+});
+```
+
+**Riverpod State Management**: The app uses Riverpod providers to manage state reactively. When a WebSocket event arrives, it updates the provider, and all listening widgets rebuild automatically.
+
+**Voice Input**: Uses the device's native speech-to-text (no cloud API), converting voice to text before sending to the chat endpoint.
+
+### AI Integration
+
+**Claude (Anthropic)**: The `ClaudeService` sends user messages to Claude Sonnet, which classifies intent (create/update/complete/delete/snooze reminder) and extracts structured action parameters. The prompt engineering ensures Claude returns consistent JSON that maps to our `ReminderAction` model.
+
+**Gemini Embeddings**: The `EmbeddingService` generates 768-dimensional vectors for each reminder using Gemini's embedding API. These are stored in PostgreSQL with pgvector, enabling semantic search—"what do I have this weekend?" finds relevant reminders by meaning, not just keyword matching.
+
+### Data Flow
+
+```
+User speaks/types → Flutter app → ChatEndpoint → ClaudeService (intent + params)
+                                       ↓
+                              Execute action (CRUD on Reminder)
+                                       ↓
+                              ReminderSyncBroadcaster → WebSocket → All connected devices
+                                       ↓
+                              FCM push notification (if app backgrounded)
+```
