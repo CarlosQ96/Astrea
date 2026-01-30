@@ -24,14 +24,14 @@ Before you start, make sure you have:
 
 ### 1. Start the Database
 
-The backend needs PostgreSQL and Redis running. Docker handles this for you.
+The backend needs PostgreSQL (with pgvector for semantic search) and Redis running. Docker handles this for you.
 
 ```bash
 cd astrea_server
 docker compose up -d
 ```
 
-This starts PostgreSQL on port 8090 and Redis on port 8091.
+This starts PostgreSQL with pgvector on port 8090 and Redis on port 8091.
 
 ### 2. Configure API Keys
 
@@ -172,19 +172,54 @@ cd astrea_server
 dart test
 ```
 
+## Building the APK
+
+To build a release APK pointing to your production server:
+
+```bash
+cd astrea_flutter
+flutter build apk --release --dart-define=ENV=production
+```
+
+The APK will be at `build/app/outputs/flutter-apk/app-release.apk`.
+
+Update the production server URL in `assets/config.production.json` before building.
+
 ## Deployment
 
 For production deployment to Railway or similar:
 
-1. Set environment variables instead of using passwords.yaml
-2. Configure your PostgreSQL and Redis instances
-3. Update the Flutter app's server URL in the config
+1. Set environment variables using the `SERVERPOD_PASSWORD_` prefix
+2. Configure PostgreSQL with the **pgvector** extension (required for semantic search)
+3. Update the Flutter app's server URL in `assets/config.production.json`
 
-The server reads from environment variables as fallback:
-- `ANTHROPIC_API_KEY`
-- `GEMINI_API_KEY`
-- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`
-- `FIREBASE_SERVICE_ACCOUNT`
+Required environment variables:
+
+```bash
+# Database
+SERVERPOD_PASSWORD_database='your-db-password'
+
+# API Keys
+SERVERPOD_PASSWORD_anthropicApiKey='your-anthropic-key'
+SERVERPOD_PASSWORD_geminiApiKey='your-gemini-key'
+
+# Security tokens
+SERVERPOD_PASSWORD_serviceSecret='your-service-secret'
+SERVERPOD_PASSWORD_emailSecretHashPepper='your-pepper'
+SERVERPOD_PASSWORD_jwtHmacSha512PrivateKey='your-jwt-key'
+SERVERPOD_PASSWORD_jwtRefreshTokenHashPepper='your-refresh-pepper'
+
+# Optional: Push notifications
+SERVERPOD_PASSWORD_firebaseServiceAccount='{"type":"service_account",...}'
+
+# Optional: Email
+SERVERPOD_PASSWORD_smtpHost='smtp.example.com'
+SERVERPOD_PASSWORD_smtpPort='587'
+SERVERPOD_PASSWORD_smtpUsername='your-username'
+SERVERPOD_PASSWORD_smtpPassword='your-password'
+SERVERPOD_PASSWORD_smtpFromEmail='noreply@example.com'
+SERVERPOD_PASSWORD_smtpFromName='Astrea'
+```
 
 ## Troubleshooting
 

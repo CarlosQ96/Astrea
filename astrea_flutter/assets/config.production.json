@@ -1,4 +1,4 @@
 {
-    "apiUrl": "https://api.astrea.app",
+    "apiUrl": "https://astrea-production.up.railway.app",
     "environment": "production"
 }

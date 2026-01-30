@@ -21,7 +21,7 @@ webServer:
 
 # Database config - password from SERVERPOD_PASSWORD_database env var
 database:
-  host: postgres.railway.internal
+  host: pgvector.railway.internal
   port: 5432
   name: railway
   user: postgres
