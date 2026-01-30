@@ -82,6 +82,22 @@ class ReminderCard extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
+                if (reminder.repeatRule != null) ...[
+                  const SizedBox(width: 8),
+                  const Icon(
+                    Icons.repeat,
+                    size: 14,
+                    color: AstreaColors.starlightCyan,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    _formatRecurrence(reminder.repeatRule),
+                    style: const TextStyle(
+                      color: AstreaColors.starlightCyan,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ],
             ),
           ],
@@ -127,5 +143,17 @@ class ReminderCard extends StatelessWidget {
     } else {
       return '${local.month}/${local.day} at $time';
     }
+  }
+
+  String _formatRecurrence(String? repeatRule) {
+    if (repeatRule == null || repeatRule.isEmpty) return '';
+
+    final rule = repeatRule.toUpperCase();
+    if (rule.contains('FREQ=DAILY')) return 'Daily';
+    if (rule.contains('BYDAY=MO,TU,WE,TH,FR')) return 'Weekdays';
+    if (rule.contains('FREQ=WEEKLY')) return 'Weekly';
+    if (rule.contains('FREQ=MONTHLY')) return 'Monthly';
+    if (rule.contains('FREQ=YEARLY')) return 'Yearly';
+    return 'Repeats';
   }
 }

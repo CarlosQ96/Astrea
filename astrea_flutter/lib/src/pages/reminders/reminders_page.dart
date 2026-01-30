@@ -7,6 +7,7 @@ import '../../providers/reminders_provider.dart';
 import '../../services/notification_service.dart';
 import '../../theme/astrea_colors.dart';
 import '../../widgets/reminder_card.dart';
+import '../../widgets/reminder_detail_sheet.dart';
 
 /// Displays list of reminders grouped by time.
 /// Optimized for 60fps with ValueKey for efficient diffing.
@@ -203,16 +204,72 @@ class RemindersPage extends ConsumerWidget {
           (r) => Padding(
             key: ValueKey('reminder_${r.id}'),
             padding: const EdgeInsets.only(bottom: 8),
-            child: ReminderCard(
-              key: ValueKey('card_${r.id}'),
-              reminder: r,
-              onComplete: () => _completeReminder(context, ref, r),
-              onDelete: () => _deleteReminder(context, ref, r),
+            child: GestureDetector(
+              onTap: () => _showReminderDetail(context, ref, r),
+              child: ReminderCard(
+                key: ValueKey('card_${r.id}'),
+                reminder: r,
+                onComplete: () => _completeReminder(context, ref, r),
+                onDelete: () => _deleteReminder(context, ref, r),
+              ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  void _showReminderDetail(
+    BuildContext context,
+    WidgetRef ref,
+    Reminder reminder,
+  ) {
+    ReminderDetailSheet.show(
+      context,
+      reminder: reminder,
+      onUpdate: (updated) => _updateReminder(context, ref, updated),
+      onComplete: () => _completeReminder(context, ref, reminder),
+      onDelete: () => _deleteReminder(context, ref, reminder),
+    );
+  }
+
+  Future<void> _updateReminder(
+    BuildContext context,
+    WidgetRef ref,
+    Reminder reminder,
+  ) async {
+    final id = reminder.id;
+    if (id == null) return;
+    try {
+      final client = ref.read(clientProvider);
+      await client.reminder.update(
+        id,
+        repeatRule: reminder.repeatRule,
+      );
+      ref.invalidate(remindersProvider);
+      if (context.mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text('Updated: ${reminder.title}'),
+            backgroundColor: AstreaColors.starlightCyan,
+            duration: const Duration(milliseconds: 1500),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Failed to update reminder'),
+            backgroundColor: AstreaColors.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _completeReminder(

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:serverpod/serverpod.dart';
 
@@ -17,10 +19,13 @@ class EmbeddingService {
     );
   }
 
-  /// Lazy singleton that reads API key from Serverpod passwords config.
+  /// Lazy singleton that reads API key from Serverpod passwords config or env var.
   static Future<EmbeddingService?> getInstance(Session session) async {
     if (_instance == null) {
-      final apiKey = session.passwords['geminiApiKey'];
+      // Try passwords.yaml first, then environment variable
+      final apiKey =
+          session.passwords['geminiApiKey'] ??
+          Platform.environment['GEMINI_API_KEY'];
       if (apiKey == null || apiKey.isEmpty) {
         session.log(
           'Gemini API key not configured - embeddings disabled',

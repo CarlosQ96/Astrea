@@ -3,6 +3,7 @@ library;
 
 enum Intent {
   createReminder('create_reminder'),
+  updateReminder('update_reminder'),
   listReminders('list_reminders'),
   completeReminder('complete_reminder'),
   deleteReminder('delete_reminder'),
@@ -40,6 +41,26 @@ class CreateReminderAction extends ParsedAction {
     required this.dueAtUtc,
     this.priority = 2,
     this.repeatRule,
+  });
+}
+
+class UpdateReminderAction extends ParsedAction {
+  final int reminderId;
+  final String? title;
+  final String? description;
+  final DateTime? dueAtUtc;
+  final int? priority;
+  final String? repeatRule;
+  final bool clearRepeatRule; // For explicitly removing recurrence
+
+  const UpdateReminderAction({
+    required this.reminderId,
+    this.title,
+    this.description,
+    this.dueAtUtc,
+    this.priority,
+    this.repeatRule,
+    this.clearRepeatRule = false,
   });
 }
 

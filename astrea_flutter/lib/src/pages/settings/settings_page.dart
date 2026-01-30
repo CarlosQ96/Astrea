@@ -23,8 +23,44 @@ class SettingsPage extends ConsumerWidget {
         loading: () => const Center(
           child: CircularProgressIndicator(color: AstreaColors.starlightCyan),
         ),
-        error: (_, _) => const Center(
-          child: Text('Failed to load settings'),
+        error: (error, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.cloud_off,
+                  size: 48,
+                  color: AstreaColors.error,
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Failed to load settings',
+                  style: TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please check your connection and try again',
+                  style: TextStyle(
+                    color: AstreaColors.mist,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(userSettingsProvider),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AstreaColors.starlightCyan,
+                    foregroundColor: AstreaColors.deepVoid,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

@@ -7,6 +7,7 @@ import '../services/embedding_service.dart';
 import '../services/fcm_service.dart';
 import '../services/exceptions.dart';
 import '../services/intent.dart';
+import '../services/recurrence_service.dart';
 import '../generated/chat_response.dart';
 import '../generated/reminder.dart';
 import '../generated/user_settings.dart';
@@ -124,6 +125,26 @@ class ChatEndpoint extends Endpoint {
           priority: priority,
           repeatRule: repeatRule,
         ),
+      UpdateReminderAction(
+        :final reminderId,
+        :final title,
+        :final description,
+        :final dueAtUtc,
+        :final priority,
+        :final repeatRule,
+        :final clearRepeatRule,
+      ) =>
+        await _updateReminder(
+          session,
+          userId,
+          reminderId,
+          title: title,
+          description: description,
+          dueAtUtc: dueAtUtc,
+          priority: priority,
+          repeatRule: clearRepeatRule ? null : repeatRule,
+          clearRepeatRule: clearRepeatRule,
+        ),
       CompleteReminderAction(:final reminderId) => await _completeReminder(
         session,
         userId,
@@ -165,7 +186,41 @@ class ChatEndpoint extends Endpoint {
     return null;
   }
 
+  /// Updates an existing reminder after verifying ownership.
+  Future<String?> _updateReminder(
+    Session session,
+    UuidValue userId,
+    int reminderId, {
+    String? title,
+    String? description,
+    DateTime? dueAtUtc,
+    int? priority,
+    String? repeatRule,
+    bool clearRepeatRule = false,
+  }) async {
+    final reminder = await Reminder.db.findById(session, reminderId);
+    if (reminder == null || reminder.userId != userId) {
+      return 'I couldn\'t find that reminder. Could you be more specific?';
+    }
+
+    final updated = reminder.copyWith(
+      title: title ?? reminder.title,
+      description: description ?? reminder.description,
+      dueAtUtc: dueAtUtc ?? reminder.dueAtUtc,
+      priority: priority ?? reminder.priority,
+      repeatRule: clearRepeatRule ? null : (repeatRule ?? reminder.repeatRule),
+      revision: reminder.revision + 1,
+      updatedAt: DateTime.now().toUtc(),
+    );
+
+    final result = await Reminder.db.updateRow(session, updated);
+    ReminderSyncBroadcaster.notifyUpdated(result);
+    unawaited(_sendFcmNotification(session, userId, 'updated', result.id!));
+    return null;
+  }
+
   /// Marks reminder complete after verifying ownership.
+  /// For recurring reminders, schedules the next occurrence instead.
   Future<String?> _completeReminder(
     Session session,
     UuidValue userId,
@@ -176,14 +231,39 @@ class ChatEndpoint extends Endpoint {
       return 'I couldn\'t find that reminder. Could you be more specific?';
     }
 
-    final updated = reminder.copyWith(
-      isCompleted: true,
-      revision: reminder.revision + 1,
-      updatedAt: DateTime.now().toUtc(),
+    // Check if this is a recurring reminder
+    final nextOccurrence = RecurrenceService.getNextOccurrence(
+      reminder.dueAtUtc,
+      reminder.repeatRule,
     );
+
+    Reminder updated;
+    if (nextOccurrence != null) {
+      // Recurring: reschedule to next occurrence
+      updated = reminder.copyWith(
+        dueAtUtc: nextOccurrence,
+        snoozedUntilUtc: null,
+        revision: reminder.revision + 1,
+        updatedAt: DateTime.now().toUtc(),
+      );
+    } else {
+      // Non-recurring: mark complete
+      updated = reminder.copyWith(
+        isCompleted: true,
+        revision: reminder.revision + 1,
+        updatedAt: DateTime.now().toUtc(),
+      );
+    }
+
     final result = await Reminder.db.updateRow(session, updated);
-    ReminderSyncBroadcaster.notifyCompleted(result);
-    unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
+
+    if (nextOccurrence != null) {
+      ReminderSyncBroadcaster.notifyUpdated(result);
+      unawaited(_sendFcmNotification(session, userId, 'updated', result.id!));
+    } else {
+      ReminderSyncBroadcaster.notifyCompleted(result);
+      unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
+    }
     return null;
   }
 

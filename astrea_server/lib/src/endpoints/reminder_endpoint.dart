@@ -4,6 +4,7 @@ import 'package:serverpod/serverpod.dart';
 
 import '../generated/reminder.dart';
 import '../services/fcm_service.dart';
+import '../services/recurrence_service.dart';
 import 'sync_endpoint.dart';
 
 class ReminderEndpoint extends Endpoint {
@@ -132,6 +133,8 @@ class ReminderEndpoint extends Endpoint {
     );
   }
 
+  /// Completes a reminder. For recurring reminders, schedules the next occurrence
+  /// instead of marking complete (unless the recurrence has ended).
   Future<Reminder?> complete(Session session, int id) async {
     final userId = _getUserId(session);
 
@@ -140,15 +143,40 @@ class ReminderEndpoint extends Endpoint {
       return null;
     }
 
-    final updated = existing.copyWith(
-      isCompleted: true,
-      revision: existing.revision + 1,
-      updatedAt: DateTime.now().toUtc(),
+    // Check if this is a recurring reminder
+    final nextOccurrence = RecurrenceService.getNextOccurrence(
+      existing.dueAtUtc,
+      existing.repeatRule,
     );
 
+    Reminder updated;
+    if (nextOccurrence != null) {
+      // Recurring: reschedule to next occurrence instead of marking complete
+      updated = existing.copyWith(
+        dueAtUtc: nextOccurrence,
+        snoozedUntilUtc: null, // Clear any snooze
+        revision: existing.revision + 1,
+        updatedAt: DateTime.now().toUtc(),
+      );
+    } else {
+      // Non-recurring or recurrence ended: mark as complete
+      updated = existing.copyWith(
+        isCompleted: true,
+        revision: existing.revision + 1,
+        updatedAt: DateTime.now().toUtc(),
+      );
+    }
+
     final result = await Reminder.db.updateRow(session, updated);
-    ReminderSyncBroadcaster.notifyCompleted(result);
-    unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
+
+    if (nextOccurrence != null) {
+      // For recurring, notify as "updated" (rescheduled) not "completed"
+      ReminderSyncBroadcaster.notifyUpdated(result);
+      unawaited(_sendFcmNotification(session, userId, 'updated', result.id!));
+    } else {
+      ReminderSyncBroadcaster.notifyCompleted(result);
+      unawaited(_sendFcmNotification(session, userId, 'completed', result.id!));
+    }
     return result;
   }
 

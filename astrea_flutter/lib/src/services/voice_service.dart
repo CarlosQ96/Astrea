@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
@@ -83,13 +85,17 @@ class VoiceService extends StateNotifier<VoiceState> {
       error: null,
     );
 
+    // Android has more aggressive timeouts than iOS
+    // Use longer pauseFor and don't cancel on error to handle timeouts gracefully
     await _speech.listen(
       onResult: _onResult,
       listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 3),
+      pauseFor: Platform.isAndroid
+          ? const Duration(seconds: 5)
+          : const Duration(seconds: 3),
       listenOptions: SpeechListenOptions(
         partialResults: true,
-        cancelOnError: true,
+        cancelOnError: false, // Don't cancel on timeout errors
         listenMode: ListenMode.dictation,
       ),
     );
@@ -126,11 +132,30 @@ class VoiceService extends StateNotifier<VoiceState> {
     }
   }
 
-  void _onError(dynamic error) {
-    debugPrint('VoiceService: Error: $error');
+  void _onError(SpeechRecognitionError error) {
+    debugPrint(
+      'VoiceService: Error: ${error.errorMsg} (permanent: ${error.permanent})',
+    );
+
+    // On Android, speech_timeout happens when no speech is detected
+    // Don't show this as an error - just stop listening silently
+    if (error.errorMsg == 'error_speech_timeout') {
+      state = state.copyWith(isListening: false);
+      return;
+    }
+
+    // For other errors, show a user-friendly message
+    final userMessage = switch (error.errorMsg) {
+      'error_no_match' => 'Could not understand. Please try again.',
+      'error_audio' => 'Audio recording error. Check microphone permissions.',
+      'error_network' => 'Network error. Check your connection.',
+      'error_permission' => 'Microphone permission denied.',
+      _ => 'Voice input error. Please try again.',
+    };
+
     state = state.copyWith(
       isListening: false,
-      error: error.toString(),
+      error: userMessage,
     );
   }
 

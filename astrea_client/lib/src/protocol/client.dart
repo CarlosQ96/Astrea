@@ -377,6 +377,8 @@ class EndpointReminder extends _i2.EndpointRef {
     },
   );
 
+  /// Completes a reminder. For recurring reminders, schedules the next occurrence
+  /// instead of marking complete (unless the recurrence has ended).
   _i3.Future<_i7.Reminder?> complete(int id) =>
       caller.callServerEndpoint<_i7.Reminder?>(
         'reminder',

@@ -1,6 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
 
-import 'package:llm_dart/llm_dart.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/reminder.dart';
@@ -8,20 +8,25 @@ import 'exceptions.dart';
 import 'intent.dart';
 
 /// Handles Claude AI interactions for intent classification and response generation.
+/// Uses direct HTTP calls to Anthropic API (no Flutter dependencies).
 class ClaudeService {
   static const String _model = 'claude-sonnet-4-20250514';
   static const int _maxTokens = 1024;
-  static const Duration _timeout = Duration(seconds: 30);
+  static const String _apiUrl = 'https://api.anthropic.com/v1/messages';
+  static const String _apiVersion = '2023-06-01';
 
   static ClaudeService? _instance;
-  static ChatCapability? _provider;
+  static String? _apiKey;
 
   ClaudeService._();
 
-  /// Lazy singleton that reads API key from Serverpod passwords config.
+  /// Lazy singleton that reads API key from Serverpod passwords config or env var.
   static Future<ClaudeService> getInstance(Session session) async {
-    if (_instance == null || _provider == null) {
-      final apiKey = session.passwords['anthropicApiKey'];
+    if (_instance == null || _apiKey == null) {
+      // Try passwords.yaml first, then environment variable
+      final apiKey =
+          session.passwords['anthropicApiKey'] ??
+          Platform.environment['ANTHROPIC_API_KEY'];
       if (apiKey == null || apiKey.isEmpty) {
         throw const AiConfigurationException(
           message: 'Anthropic API key not configured',
@@ -29,14 +34,7 @@ class ClaudeService {
         );
       }
 
-      _provider = await ai()
-          .anthropic()
-          .apiKey(apiKey)
-          .model(_model)
-          .maxTokens(_maxTokens)
-          .timeout(_timeout)
-          .build();
-
+      _apiKey = apiKey;
       _instance = ClaudeService._();
     }
     return _instance!;
@@ -52,7 +50,7 @@ class ClaudeService {
     required String timezone,
     List<Map<String, String>>? conversationHistory,
   }) async {
-    if (_provider == null) {
+    if (_apiKey == null) {
       throw const AiConfigurationException(
         message: 'Claude service not initialized',
         code: 'NOT_INITIALIZED',
@@ -64,51 +62,97 @@ class ClaudeService {
       timezone: timezone,
     );
 
-    // Build messages with conversation history
-    final messages = <ChatMessage>[
-      ChatMessage.system(systemPrompt),
-      // Add conversation history (sliding window of previous turns)
-      if (conversationHistory != null)
-        for (final msg in conversationHistory)
-          if (msg['role'] == 'user')
-            ChatMessage.user(msg['content'] ?? '')
-          else
-            ChatMessage.assistant(msg['content'] ?? ''),
-      // Current user message
-      ChatMessage.user(userMessage),
-    ];
+    // Build messages array for API
+    final messages = <Map<String, String>>[];
+
+    // Add conversation history (sliding window of previous turns)
+    if (conversationHistory != null) {
+      for (final msg in conversationHistory) {
+        messages.add({
+          'role': msg['role'] ?? 'user',
+          'content': msg['content'] ?? '',
+        });
+      }
+    }
+
+    // Add current user message
+    messages.add({
+      'role': 'user',
+      'content': userMessage,
+    });
 
     try {
-      final response = await _provider!.chat(messages);
-      final text = response.text ?? '';
-
-      return _parseResponse(text, reminders);
-    } on AuthError catch (e) {
-      throw AiApiException(
-        message: 'Authentication failed: $e',
-        code: 'AUTH_ERROR',
-      );
-    } on RateLimitError catch (e) {
-      throw AiRateLimitException(
-        message: 'Rate limit exceeded: $e',
-        code: 'RATE_LIMIT',
-      );
-    } on ProviderError catch (e) {
-      throw AiApiException(
-        message: 'Claude API error: $e',
-        code: 'PROVIDER_ERROR',
-      );
-    } on HttpError catch (e) {
-      throw AiApiException(
-        message: 'Network error: $e',
-        code: 'HTTP_ERROR',
-      );
+      final responseText = await _callAnthropicApi(systemPrompt, messages);
+      return _parseResponse(responseText, reminders);
     } catch (e) {
       if (e is AiException) rethrow;
       throw AiApiException(
         message: 'Unexpected error: $e',
         code: 'UNKNOWN_ERROR',
       );
+    }
+  }
+
+  /// Make HTTP request to Anthropic API.
+  Future<String> _callAnthropicApi(
+    String systemPrompt,
+    List<Map<String, String>> messages,
+  ) async {
+    final client = HttpClient();
+    client.connectionTimeout = const Duration(seconds: 30);
+
+    try {
+      final request = await client.postUrl(Uri.parse(_apiUrl));
+
+      request.headers.set('Content-Type', 'application/json; charset=utf-8');
+      request.headers.set('x-api-key', _apiKey!);
+      request.headers.set('anthropic-version', _apiVersion);
+
+      final body = jsonEncode({
+        'model': _model,
+        'max_tokens': _maxTokens,
+        'system': systemPrompt,
+        'messages': messages,
+      });
+
+      // Encode as UTF-8 bytes to handle special characters properly
+      final bodyBytes = utf8.encode(body);
+      request.headers.contentLength = bodyBytes.length;
+      request.add(bodyBytes);
+
+      final response = await request.close();
+      final responseBody = await response.transform(utf8.decoder).join();
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(responseBody) as Map<String, dynamic>;
+        final content = json['content'] as List<dynamic>?;
+        if (content != null && content.isNotEmpty) {
+          final textBlock = content.first as Map<String, dynamic>;
+          return textBlock['text'] as String? ?? '';
+        }
+        return '';
+      }
+
+      if (response.statusCode == 401) {
+        throw const AiApiException(
+          message: 'Authentication failed - check API key',
+          code: 'AUTH_ERROR',
+        );
+      }
+
+      if (response.statusCode == 429) {
+        throw const AiRateLimitException(
+          message: 'Rate limit exceeded',
+          code: 'RATE_LIMIT',
+        );
+      }
+
+      throw AiApiException(
+        message: 'API error: ${response.statusCode} - $responseBody',
+        code: 'API_ERROR',
+      );
+    } finally {
+      client.close();
     }
   }
 
@@ -146,27 +190,34 @@ $reminderContext
 RESPONSE FORMAT:
 You MUST respond with valid JSON in this exact format:
 {
-  "intent": "create_reminder|list_reminders|complete_reminder|delete_reminder|snooze_reminder|question|chat",
+  "intent": "create_reminder|update_reminder|list_reminders|complete_reminder|delete_reminder|snooze_reminder|question|chat",
   "response": "Your natural, friendly response to show the user",
   "action": {
-    "title": "string (required for create)",
+    "title": "string (required for create, optional for update)",
     "description": "string or null",
-    "dueAtUtc": "ISO 8601 UTC datetime (required for create)",
+    "dueAtUtc": "ISO 8601 UTC datetime (required for create, optional for update)",
     "priority": 1-3 (1=low, 2=medium, 3=high, default 2),
-    "repeatRule": "RRULE string or null",
-    "reminderId": number (for complete/delete/snooze),
+    "repeatRule": "RRULE string or null (set to empty string "" to remove recurrence)",
+    "reminderId": number (required for update/complete/delete/snooze),
     "minutes": number (for snooze, default 15)
   }
 }
 
 INTENT CLASSIFICATION:
-create_reminder: User wants to set/add/create a new reminder
+create_reminder: User wants to set/add/create a NEW reminder
+update_reminder: User wants to CHANGE/MODIFY an EXISTING reminder (time, recurrence, title, etc.)
 list_reminders: User asks what they have to do, their schedule
 complete_reminder: User says they finished/did/completed something
 delete_reminder: User wants to remove/cancel a reminder
 snooze_reminder: User wants to delay/postpone a reminder
 question: User asks about reminders without wanting action
 chat: Greeting, thanks, general conversation
+
+IMPORTANT - UPDATE vs CREATE:
+- If user refers to an EXISTING reminder and wants to change it → use update_reminder
+- "make it weekly" / "change to daily" / "update the time" → update_reminder (with reminderId)
+- "make the go to work reminder weekly" → update_reminder (find ID from list)
+- Only use create_reminder for genuinely NEW reminders
 
 DATE PARSING:
 "tomorrow" = next day at 9:00 AM user timezone
@@ -177,6 +228,27 @@ Always convert to UTC for dueAtUtc
 
 SNOOZE MAPPING:
 "5 minutes" = 5, "15 minutes" or "a bit" = 15, "30 minutes" = 30, "1 hour" = 60, "tomorrow" = 1440
+
+RECURRING REMINDERS (repeatRule):
+When user wants a repeating/recurring reminder, use these RRULE patterns:
+- "every day" / "daily" → "FREQ=DAILY"
+- "every week" / "weekly" → "FREQ=WEEKLY"
+- "every weekday" / "weekdays" → "FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR"
+- "every month" / "monthly" → "FREQ=MONTHLY"
+- "every year" / "yearly" / "annually" → "FREQ=YEARLY"
+If not recurring, set repeatRule to null.
+
+REQUIRED INFO FOR CREATING REMINDERS:
+You MUST have BOTH of these before creating a reminder:
+1. What to remind about (specific title/task, not just "a reminder")
+2. When to remind (time or relative reference like "tomorrow")
+
+DO NOT create a reminder if the request is vague like:
+- "create a daily reminder" → ASK: "What would you like to be reminded about?"
+- "set a reminder" → ASK: "Sure! What should I remind you about and when?"
+- "remind me every day" → ASK: "What would you like me to remind you about every day?"
+
+Use intent="question" to ask for missing info, NOT intent="create_reminder".
 
 When user refers to a reminder like "the mom one" or "groceries", match it to the most relevant reminder by title.
 When user says "the first one", "the second reminder", "my third reminder", etc., use the # number from the reminder list (sorted by creation order).
@@ -293,6 +365,7 @@ Be concise but friendly. Use natural language, not robotic responses.
 
     return switch (intent) {
       Intent.createReminder => _parseCreateAction(actionData),
+      Intent.updateReminder => _parseUpdateAction(actionData, reminders),
       Intent.completeReminder => _parseCompleteAction(actionData, reminders),
       Intent.deleteReminder => _parseDeleteAction(actionData, reminders),
       Intent.snoozeReminder => _parseSnoozeAction(actionData, reminders),
@@ -331,6 +404,37 @@ Be concise but friendly. Use natural language, not robotic responses.
       dueAtUtc: dueAtUtc,
       priority: (data['priority'] as int?) ?? 2,
       repeatRule: data['repeatRule'] as String?,
+    );
+  }
+
+  UpdateReminderAction _parseUpdateAction(
+    Map<String, dynamic> data,
+    List<Reminder> reminders,
+  ) {
+    final reminderId = _extractReminderId(data, reminders);
+
+    // Parse optional dueAtUtc
+    DateTime? dueAtUtc;
+    final dueAtStr = data['dueAtUtc'] as String?;
+    if (dueAtStr != null && dueAtStr.isNotEmpty) {
+      dueAtUtc = DateTime.tryParse(dueAtStr)?.toUtc();
+    }
+
+    // Check if repeatRule is being explicitly cleared (empty string)
+    final repeatRuleRaw = data['repeatRule'];
+    final clearRepeatRule = repeatRuleRaw == '';
+    final repeatRule = (repeatRuleRaw is String && repeatRuleRaw.isNotEmpty)
+        ? repeatRuleRaw
+        : null;
+
+    return UpdateReminderAction(
+      reminderId: reminderId,
+      title: data['title'] as String?,
+      description: data['description'] as String?,
+      dueAtUtc: dueAtUtc,
+      priority: data['priority'] as int?,
+      repeatRule: repeatRule,
+      clearRepeatRule: clearRepeatRule,
     );
   }
 

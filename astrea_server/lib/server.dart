@@ -21,13 +21,34 @@ void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
   final pod = Serverpod(args, Protocol(), Endpoints());
 
-  // Initialize SMTP configuration from passwords
-  final smtpHost = pod.getPassword('smtpHost') ?? 'smtp.mailersend.net';
-  final smtpPort = int.tryParse(pod.getPassword('smtpPort') ?? '587') ?? 587;
-  final smtpUsername = pod.getPassword('smtpUsername') ?? '';
-  final smtpPassword = pod.getPassword('smtpPassword') ?? '';
-  _fromEmail = pod.getPassword('smtpFromEmail') ?? smtpUsername;
-  _fromName = pod.getPassword('smtpFromName') ?? 'Astrea';
+  // Initialize SMTP configuration from passwords or env vars
+  final smtpHost =
+      pod.getPassword('smtpHost') ??
+      Platform.environment['SMTP_HOST'] ??
+      'smtp.mailersend.net';
+  final smtpPort =
+      int.tryParse(
+        pod.getPassword('smtpPort') ??
+            Platform.environment['SMTP_PORT'] ??
+            '587',
+      ) ??
+      587;
+  final smtpUsername =
+      pod.getPassword('smtpUsername') ??
+      Platform.environment['SMTP_USERNAME'] ??
+      '';
+  final smtpPassword =
+      pod.getPassword('smtpPassword') ??
+      Platform.environment['SMTP_PASSWORD'] ??
+      '';
+  _fromEmail =
+      pod.getPassword('smtpFromEmail') ??
+      Platform.environment['SMTP_FROM_EMAIL'] ??
+      smtpUsername;
+  _fromName =
+      pod.getPassword('smtpFromName') ??
+      Platform.environment['SMTP_FROM_NAME'] ??
+      'Astrea';
 
   _smtpServer = SmtpServer(
     smtpHost,

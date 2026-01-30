@@ -23,8 +23,10 @@ class FcmService {
       return _instance;
     }
 
-    // Read Firebase service account from passwords config
-    final serviceAccountJson = session.passwords['firebaseServiceAccount'];
+    // Read Firebase service account from passwords config or env var
+    final serviceAccountJson =
+        session.passwords['firebaseServiceAccount'] ??
+        Platform.environment['FIREBASE_SERVICE_ACCOUNT'];
     if (serviceAccountJson == null || serviceAccountJson.isEmpty) {
       session.log(
         'Firebase service account not configured - FCM disabled',
