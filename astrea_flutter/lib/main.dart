@@ -7,7 +7,7 @@ import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
 
 import 'firebase_options.dart';
-import 'src/pages/auth/auth_wrapper.dart';
+import 'src/pages/onboarding/onboarding_wrapper.dart';
 import 'src/providers/client_provider.dart';
 import 'src/providers/reminders_provider.dart';
 import 'src/services/fcm_service.dart';
@@ -76,19 +76,36 @@ class _AstreaAppState extends ConsumerState<AstreaApp> {
     final reminderId = action.payload?['reminderId'];
     if (reminderId == null) return;
 
+    final client = ref.read(clientProvider);
+    final id = int.parse(reminderId);
+
     switch (action.buttonKeyPressed) {
       case 'SNOOZE':
-        // Snooze for 15 minutes
+        // Snooze for 15 minutes - reschedule local notification
         await NotificationService.snoozeReminder(
-          reminderId: int.parse(reminderId),
+          reminderId: id,
           title: action.title ?? 'Reminder',
           body: action.body,
           snoozeMinutes: 15,
         );
+        // Also update server with new snooze time
+        try {
+          await client.reminder.snooze(id, 15);
+          ref.invalidate(remindersProvider);
+        } catch (e) {
+          debugPrint('Failed to snooze on server: $e');
+        }
         break;
       case 'COMPLETE':
-        // Mark as complete - will be handled by provider when app opens
-        debugPrint('Complete action for reminder: $reminderId');
+        // Mark as complete on server
+        try {
+          await client.reminder.complete(id);
+          await NotificationService.cancelReminder(id);
+          ref.invalidate(remindersProvider);
+          debugPrint('Reminder $id marked complete');
+        } catch (e) {
+          debugPrint('Failed to complete reminder: $e');
+        }
         break;
       default:
         // User tapped notification body - navigate to app
@@ -103,7 +120,7 @@ class _AstreaAppState extends ConsumerState<AstreaApp> {
       title: 'Astrea',
       debugShowCheckedModeBanner: false,
       theme: AstreaTheme.darkTheme,
-      home: const AuthWrapper(),
+      home: const OnboardingWrapper(),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:mailer/mailer.dart' as mailer;
+import 'package:mailer/smtp_server.dart';
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
@@ -9,10 +11,30 @@ import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 
+// SMTP configuration - loaded from passwords
+late SmtpServer _smtpServer;
+late String _fromEmail;
+late String _fromName;
+
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
   final pod = Serverpod(args, Protocol(), Endpoints());
+
+  // Initialize SMTP configuration from passwords
+  final smtpHost = pod.getPassword('smtpHost') ?? 'smtp.mailersend.net';
+  final smtpPort = int.tryParse(pod.getPassword('smtpPort') ?? '587') ?? 587;
+  final smtpUsername = pod.getPassword('smtpUsername') ?? '';
+  final smtpPassword = pod.getPassword('smtpPassword') ?? '';
+  _fromEmail = pod.getPassword('smtpFromEmail') ?? smtpUsername;
+  _fromName = pod.getPassword('smtpFromName') ?? 'Astrea';
+
+  _smtpServer = SmtpServer(
+    smtpHost,
+    port: smtpPort,
+    username: smtpUsername,
+    password: smtpPassword,
+  );
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
@@ -77,26 +99,108 @@ void run(List<String> args) async {
   await pod.start();
 }
 
-void _sendRegistrationCode(
+Future<void> _sendRegistrationCode(
   Session session, {
   required String email,
   required UuidValue accountRequestId,
   required String verificationCode,
   required Transaction? transaction,
-}) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
-  session.log('[EmailIdp] Registration code ($email): $verificationCode');
+}) async {
+  session.log('[EmailIdp] Sending registration code to $email');
+
+  final message = mailer.Message()
+    ..from = mailer.Address(_fromEmail, _fromName)
+    ..recipients.add(email)
+    ..subject = 'Your Astrea Verification Code'
+    ..html =
+        '''
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0E0E18; color: #F5F5FA; padding: 40px; }
+    .container { max-width: 480px; margin: 0 auto; text-align: center; }
+    .logo { font-size: 32px; color: #4FE8E8; margin-bottom: 24px; }
+    .code { font-size: 36px; letter-spacing: 8px; color: #4FE8E8; background: #1F1F35; padding: 20px 32px; border-radius: 12px; margin: 24px 0; display: inline-block; }
+    .text { color: #B8B8CC; line-height: 1.6; }
+    .footer { margin-top: 32px; font-size: 12px; color: #6A6A80; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">✨ Astrea</div>
+    <h2>Welcome to Astrea!</h2>
+    <p class="text">Use this code to verify your account:</p>
+    <div class="code">$verificationCode</div>
+    <p class="text">This code expires in 10 minutes.</p>
+    <div class="footer">If you didn't request this, you can safely ignore this email.</div>
+  </div>
+</body>
+</html>
+''';
+
+  try {
+    await mailer.send(message, _smtpServer);
+    session.log('[EmailIdp] Registration code sent successfully to $email');
+  } catch (e) {
+    session.log(
+      '[EmailIdp] Failed to send registration code: $e',
+      level: LogLevel.error,
+    );
+    // Still log the code for debugging
+    session.log('[EmailIdp] Registration code ($email): $verificationCode');
+  }
 }
 
-void _sendPasswordResetCode(
+Future<void> _sendPasswordResetCode(
   Session session, {
   required String email,
   required UuidValue passwordResetRequestId,
   required String verificationCode,
   required Transaction? transaction,
-}) {
-  // NOTE: Here you call your mail service to send the verification code to
-  // the user. For testing, we will just log the verification code.
-  session.log('[EmailIdp] Password reset code ($email): $verificationCode');
+}) async {
+  session.log('[EmailIdp] Sending password reset code to $email');
+
+  final message = mailer.Message()
+    ..from = mailer.Address(_fromEmail, _fromName)
+    ..recipients.add(email)
+    ..subject = 'Reset Your Astrea Password'
+    ..html =
+        '''
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0E0E18; color: #F5F5FA; padding: 40px; }
+    .container { max-width: 480px; margin: 0 auto; text-align: center; }
+    .logo { font-size: 32px; color: #4FE8E8; margin-bottom: 24px; }
+    .code { font-size: 36px; letter-spacing: 8px; color: #4FE8E8; background: #1F1F35; padding: 20px 32px; border-radius: 12px; margin: 24px 0; display: inline-block; }
+    .text { color: #B8B8CC; line-height: 1.6; }
+    .footer { margin-top: 32px; font-size: 12px; color: #6A6A80; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">✨ Astrea</div>
+    <h2>Password Reset</h2>
+    <p class="text">Use this code to reset your password:</p>
+    <div class="code">$verificationCode</div>
+    <p class="text">This code expires in 10 minutes.</p>
+    <div class="footer">If you didn't request this, you can safely ignore this email.</div>
+  </div>
+</body>
+</html>
+''';
+
+  try {
+    await mailer.send(message, _smtpServer);
+    session.log('[EmailIdp] Password reset code sent successfully to $email');
+  } catch (e) {
+    session.log(
+      '[EmailIdp] Failed to send password reset code: $e',
+      level: LogLevel.error,
+    );
+    // Still log the code for debugging
+    session.log('[EmailIdp] Password reset code ($email): $verificationCode');
+  }
 }

@@ -6,6 +6,8 @@ import '../../services/notification_service.dart';
 import '../../theme/astrea_colors.dart';
 import '../../widgets/chat_bubble.dart';
 import '../../widgets/chat_input.dart';
+import '../../widgets/constellation_background.dart';
+import '../onboarding/onboarding_page.dart';
 import '../reminders/reminders_page.dart';
 import '../settings/settings_page.dart';
 
@@ -56,13 +58,82 @@ class _ChatPageState extends ConsumerState<ChatPage> {
   }
 }
 
-class _ChatView extends ConsumerWidget {
+class _ChatView extends ConsumerStatefulWidget {
   const _ChatView();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends ConsumerState<_ChatView> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    _dissolveOldMessages();
+  }
+
+  void _dissolveOldMessages() {
+    if (!mounted) return;
+
+    final messages = ref.read(chatMessagesProvider);
+    // Keep only the most recent 4 messages visible
+    const maxVisibleMessages = 4;
+
+    if (messages.length <= maxVisibleMessages) return;
+
+    final messagesToDissolve = <String>{};
+
+    // Dissolve oldest messages (at the start of the list)
+    for (int i = 0; i < messages.length - maxVisibleMessages; i++) {
+      final msg = messages[i];
+      if (!msg.isDissolving) {
+        messagesToDissolve.add(msg.id);
+      }
+    }
+
+    if (messagesToDissolve.isNotEmpty) {
+      ref
+          .read(chatMessagesProvider.notifier)
+          .markMultipleDissolving(
+            messagesToDissolve,
+          );
+      // Remove after animation
+      Future.delayed(const Duration(milliseconds: 1300), () {
+        if (mounted) {
+          for (final id in messagesToDissolve) {
+            ref.read(chatMessagesProvider.notifier).removeMessage(id);
+          }
+        }
+      });
+    }
+  }
+
+  void _onDissolveComplete(String messageId) {
+    ref.read(chatMessagesProvider.notifier).removeMessage(messageId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final messages = ref.watch(chatMessagesProvider);
     final isLoading = ref.watch(chatLoadingProvider);
+
+    // Auto-dissolve old messages when list grows
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _dissolveOldMessages();
+    });
 
     return Column(
       children: [
@@ -92,6 +163,17 @@ class _ChatView extends ConsumerWidget {
               ),
               const Spacer(),
               IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => OnboardingPage(
+                      onComplete: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ),
+                tooltip: 'How it works',
+              ),
+              IconButton(
                 icon: const Icon(Icons.notifications_active_outlined),
                 onPressed: () => NotificationService.showTestNotification(),
                 tooltip: 'Test notification',
@@ -107,49 +189,68 @@ class _ChatView extends ConsumerWidget {
           ),
         ),
 
-        // Messages list
+        // Messages list with constellation background
         Expanded(
-          child: messages.isEmpty
-              ? _buildEmptyState(context)
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  reverse: true,
-                  itemCount: messages.length,
-                  itemBuilder: (context, index) {
-                    // reverse: true puts index 0 at the bottom of screen
-                    // We want newest message (last in list) at bottom
-                    final messageIndex = messages.length - 1 - index;
-                    final message = messages[messageIndex];
-                    return ChatBubble(
-                      key: ValueKey('msg_$messageIndex'),
-                      message: message,
-                    );
-                  },
+          child: Stack(
+            children: [
+              // Full-screen constellation background
+              const Positioned.fill(
+                child: ConstellationBackground(
+                  starCount: 80,
+                  particleCount: 25,
                 ),
+              ),
+              // Messages
+              messages.isEmpty
+                  ? _buildEmptyState(context)
+                  : ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      reverse: true,
+                      itemCount: messages.length,
+                      itemBuilder: (context, index) {
+                        final messageIndex = messages.length - 1 - index;
+                        final message = messages[messageIndex];
+                        return ChatBubble(
+                          key: ValueKey(message.id),
+                          message: message,
+                          onDissolveComplete: () =>
+                              _onDissolveComplete(message.id),
+                        );
+                      },
+                    ),
+            ],
+          ),
         ),
 
-        // Loading indicator
-        if (isLoading)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AstreaColors.starlightCyan,
+        // Loading indicator - fixed height to prevent layout shifts
+        AnimatedOpacity(
+          opacity: isLoading ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: const SizedBox(
+            height: 24,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: AstreaColors.starlightCyan,
+                    ),
                   ),
-                ),
-                SizedBox(width: 8),
-                Text(
-                  'Astrea is thinking...',
-                  style: TextStyle(color: AstreaColors.mist),
-                ),
-              ],
+                  SizedBox(width: 8),
+                  Text(
+                    'Astrea is thinking...',
+                    style: TextStyle(color: AstreaColors.mist),
+                  ),
+                ],
+              ),
             ),
           ),
+        ),
 
         // Input
         const ChatInput(),

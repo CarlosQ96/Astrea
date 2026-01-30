@@ -485,6 +485,7 @@ class _ChatEndpoint {
     _i1.TestSessionBuilder sessionBuilder,
     String message, {
     String? timezone,
+    List<Map<String, String>>? history,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -500,6 +501,7 @@ class _ChatEndpoint {
           parameters: _i1.testObjectToJson({
             'message': message,
             'timezone': timezone,
+            'history': history,
           }),
           serializationManager: _serializationManager,
         );

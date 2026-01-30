@@ -12,9 +12,12 @@ dependencies:
   serverpod_auth_core_server: 3.2.3
   # AI Integration
   llm_dart: ^0.4.0
+  google_generative_ai: ^0.4.0  # Gemini for embeddings (RAG)
   # Firebase auth for FCM
   googleapis_auth: ^1.6.0
   http: ^1.2.0
+  # Email sending
+  mailer: ^6.1.0
 
 dev_dependencies:
   lints: '>=3.0.0 <7.0.0'

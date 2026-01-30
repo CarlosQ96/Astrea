@@ -39,6 +39,8 @@ dependencies:
   awesome_notifications: ^0.10.0
   # Voice input
   speech_to_text: ^7.3.0
+  # Local storage
+  shared_preferences: ^2.2.2
   firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
 

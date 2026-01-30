@@ -213,6 +213,13 @@ class Protocol extends _i1.SerializationManagerServer {
           columnDefault: '1',
         ),
         _i2.ColumnDefinition(
+          name: 'embedding',
+          columnType: _i2.ColumnType.vector,
+          isNullable: true,
+          dartType: 'Vector(768)?',
+          vectorDimension: 768,
+        ),
+        _i2.ColumnDefinition(
           name: 'createdAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,
@@ -437,6 +444,26 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (t == _i1.getType<_i9.UserSettings?>()) {
       return (data != null ? _i9.UserSettings.fromJson(data) : null) as T;
+    }
+    if (t == List<Map<String, String>>) {
+      return (data as List)
+              .map((e) => deserialize<Map<String, String>>(e))
+              .toList()
+          as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
+    }
+    if (t == _i1.getType<List<Map<String, String>>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<Map<String, String>>(e))
+                    .toList()
+              : null)
+          as T;
     }
     if (t == List<_i10.Reminder>) {
       return (data as List).map((e) => deserialize<_i10.Reminder>(e)).toList()

@@ -11,7 +11,7 @@ class NotificationService {
   /// Initialize the notification system. Call in main() before runApp().
   static Future<void> initialize() async {
     await AwesomeNotifications().initialize(
-      null, // Use default app icon
+      'resource://drawable/res_notification_icon',
       [
         NotificationChannel(
           channelGroupKey: _channelGroupKey,
@@ -25,6 +25,7 @@ class NotificationService {
           playSound: true,
           enableVibration: true,
           criticalAlerts: true,
+          icon: 'resource://drawable/res_notification_icon',
         ),
       ],
       channelGroups: [
@@ -74,9 +75,31 @@ class NotificationService {
     String? body,
     required DateTime scheduledTime,
   }) async {
+    final now = DateTime.now();
+    final localScheduledTime = scheduledTime.toLocal();
+    final secondsUntil = localScheduledTime.difference(now).inSeconds;
+
     // Don't schedule if time is in the past
-    if (scheduledTime.isBefore(DateTime.now().toUtc())) {
+    if (secondsUntil <= 0) {
       return;
+    }
+
+    // Use interval for short durations (under 60 seconds) for better precision
+    // Use calendar for longer durations
+    final NotificationSchedule schedule;
+    if (secondsUntil < 60) {
+      schedule = NotificationInterval(
+        interval: Duration(seconds: secondsUntil),
+        allowWhileIdle: true,
+        preciseAlarm: true,
+        repeats: false,
+      );
+    } else {
+      schedule = NotificationCalendar.fromDate(
+        date: localScheduledTime,
+        allowWhileIdle: true,
+        preciseAlarm: true,
+      );
     }
 
     await AwesomeNotifications().createNotification(
@@ -85,6 +108,9 @@ class NotificationService {
         channelKey: _channelKey,
         title: title,
         body: body ?? 'Tap to view details',
+        icon: 'resource://drawable/res_notification_icon',
+        largeIcon: 'resource://mipmap/ic_launcher',
+        color: AstreaColors.starlightCyan,
         wakeUpScreen: true,
         category: NotificationCategory.Reminder,
         notificationLayout: NotificationLayout.Default,
@@ -95,11 +121,7 @@ class NotificationService {
           'reminderId': reminderId.toString(),
         },
       ),
-      schedule: NotificationCalendar.fromDate(
-        date: scheduledTime.toLocal(),
-        allowWhileIdle: true,
-        preciseAlarm: true,
-      ),
+      schedule: schedule,
       actionButtons: [
         NotificationActionButton(
           key: 'SNOOZE',
@@ -122,8 +144,11 @@ class NotificationService {
       content: NotificationContent(
         id: 99999,
         channelKey: _channelKey,
-        title: 'Test Notification',
+        title: 'Test Notification ✨',
         body: 'This is a test notification from Astrea!',
+        icon: 'resource://drawable/res_notification_icon',
+        largeIcon: 'resource://mipmap/ic_launcher',
+        color: AstreaColors.starlightCyan,
         wakeUpScreen: true,
         category: NotificationCategory.Reminder,
         notificationLayout: NotificationLayout.Default,

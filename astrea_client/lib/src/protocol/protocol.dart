@@ -92,6 +92,26 @@ class Protocol extends _i1.SerializationManager {
     if (t == _i1.getType<_i6.UserSettings?>()) {
       return (data != null ? _i6.UserSettings.fromJson(data) : null) as T;
     }
+    if (t == List<Map<String, String>>) {
+      return (data as List)
+              .map((e) => deserialize<Map<String, String>>(e))
+              .toList()
+          as T;
+    }
+    if (t == Map<String, String>) {
+      return (data as Map).map(
+            (k, v) => MapEntry(deserialize<String>(k), deserialize<String>(v)),
+          )
+          as T;
+    }
+    if (t == _i1.getType<List<Map<String, String>>?>()) {
+      return (data != null
+              ? (data as List)
+                    .map((e) => deserialize<Map<String, String>>(e))
+                    .toList()
+              : null)
+          as T;
+    }
     if (t == List<_i7.Reminder>) {
       return (data as List).map((e) => deserialize<_i7.Reminder>(e)).toList()
           as T;

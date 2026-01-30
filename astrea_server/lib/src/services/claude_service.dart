@@ -43,11 +43,14 @@ class ClaudeService {
   }
 
   /// Sends user message to Claude with reminder context, returns classified intent and action.
+  /// [conversationHistory] - Optional list of previous messages for context.
+  /// Each map should have 'role' ('user' or 'assistant') and 'content' keys.
   Future<({String response, Intent intent, ParsedAction action})>
   processMessage({
     required String userMessage,
     required List<Reminder> reminders,
     required String timezone,
+    List<Map<String, String>>? conversationHistory,
   }) async {
     if (_provider == null) {
       throw const AiConfigurationException(
@@ -61,8 +64,17 @@ class ClaudeService {
       timezone: timezone,
     );
 
-    final messages = [
+    // Build messages with conversation history
+    final messages = <ChatMessage>[
       ChatMessage.system(systemPrompt),
+      // Add conversation history (sliding window of previous turns)
+      if (conversationHistory != null)
+        for (final msg in conversationHistory)
+          if (msg['role'] == 'user')
+            ChatMessage.user(msg['content'] ?? '')
+          else
+            ChatMessage.assistant(msg['content'] ?? ''),
+      // Current user message
       ChatMessage.user(userMessage),
     ];
 

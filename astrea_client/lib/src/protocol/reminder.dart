@@ -25,6 +25,7 @@ abstract class Reminder implements _i1.SerializableModel {
     bool? isCompleted,
     int? priority,
     int? revision,
+    this.embedding,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : isCompleted = isCompleted ?? false,
@@ -45,6 +46,7 @@ abstract class Reminder implements _i1.SerializableModel {
     bool? isCompleted,
     int? priority,
     int? revision,
+    _i1.Vector? embedding,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) = _ReminderImpl;
@@ -68,6 +70,9 @@ abstract class Reminder implements _i1.SerializableModel {
       isCompleted: jsonSerialization['isCompleted'] as bool?,
       priority: jsonSerialization['priority'] as int?,
       revision: jsonSerialization['revision'] as int?,
+      embedding: jsonSerialization['embedding'] == null
+          ? null
+          : _i1.VectorJsonExtension.fromJson(jsonSerialization['embedding']),
       createdAt: jsonSerialization['createdAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(jsonSerialization['createdAt']),
@@ -102,6 +107,8 @@ abstract class Reminder implements _i1.SerializableModel {
 
   int revision;
 
+  _i1.Vector? embedding;
+
   DateTime createdAt;
 
   DateTime updatedAt;
@@ -121,6 +128,7 @@ abstract class Reminder implements _i1.SerializableModel {
     bool? isCompleted,
     int? priority,
     int? revision,
+    _i1.Vector? embedding,
     DateTime? createdAt,
     DateTime? updatedAt,
   });
@@ -139,6 +147,7 @@ abstract class Reminder implements _i1.SerializableModel {
       'isCompleted': isCompleted,
       'priority': priority,
       'revision': revision,
+      if (embedding != null) 'embedding': embedding?.toJson(),
       'createdAt': createdAt.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
@@ -165,6 +174,7 @@ class _ReminderImpl extends Reminder {
     bool? isCompleted,
     int? priority,
     int? revision,
+    _i1.Vector? embedding,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) : super._(
@@ -179,6 +189,7 @@ class _ReminderImpl extends Reminder {
          isCompleted: isCompleted,
          priority: priority,
          revision: revision,
+         embedding: embedding,
          createdAt: createdAt,
          updatedAt: updatedAt,
        );
@@ -199,6 +210,7 @@ class _ReminderImpl extends Reminder {
     bool? isCompleted,
     int? priority,
     int? revision,
+    Object? embedding = _Undefined,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -216,6 +228,7 @@ class _ReminderImpl extends Reminder {
       isCompleted: isCompleted ?? this.isCompleted,
       priority: priority ?? this.priority,
       revision: revision ?? this.revision,
+      embedding: embedding is _i1.Vector? ? embedding : this.embedding?.clone(),
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

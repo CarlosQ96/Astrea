@@ -12,6 +12,7 @@ fields:
   isCompleted: bool, default=false
   priority: int, default=2  # 1=low, 2=medium, 3=high
   revision: int, default=1
+  embedding: Vector(768)?    # Gemini text-embedding-004 vectors for RAG
   createdAt: DateTime, default=now
   updatedAt: DateTime, default=now
 

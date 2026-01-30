@@ -228,17 +228,21 @@ class RemindersPage extends ConsumerWidget {
       await NotificationService.cancelReminder(id);
       ref.invalidate(remindersProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Completed: ${reminder.title}'),
             backgroundColor: AstreaColors.success,
-            duration: const Duration(seconds: 2),
+            duration: const Duration(milliseconds: 1500),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Failed to complete reminder'),
             backgroundColor: AstreaColors.error,
@@ -287,16 +291,20 @@ class RemindersPage extends ConsumerWidget {
       await NotificationService.cancelReminder(id);
       ref.invalidate(remindersProvider);
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Deleted: ${reminder.title}'),
-            duration: const Duration(seconds: 2),
+            duration: const Duration(milliseconds: 1500),
           ),
         );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        messenger.showSnackBar(
           const SnackBar(
             content: Text('Failed to delete reminder'),
             backgroundColor: AstreaColors.error,

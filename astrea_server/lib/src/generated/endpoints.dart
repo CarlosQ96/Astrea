@@ -281,6 +281,11 @@ class Endpoints extends _i1.EndpointDispatch {
               type: _i1.getType<String?>(),
               nullable: true,
             ),
+            'history': _i1.ParameterDescription(
+              name: 'history',
+              type: _i1.getType<List<Map<String, String>>?>(),
+              nullable: true,
+            ),
           },
           call:
               (
@@ -290,6 +295,7 @@ class Endpoints extends _i1.EndpointDispatch {
                 session,
                 params['message'],
                 timezone: params['timezone'],
+                history: params['history'],
               ),
         ),
       },

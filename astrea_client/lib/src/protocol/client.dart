@@ -246,15 +246,18 @@ class EndpointChat extends _i2.EndpointRef {
   String get name => 'chat';
 
   /// Main entry point: processes chat message, classifies intent, executes action.
+  /// [history] - Optional conversation history for context (list of {role, content} maps).
   _i3.Future<_i5.ChatResponse> send(
     String message, {
     String? timezone,
+    List<Map<String, String>>? history,
   }) => caller.callServerEndpoint<_i5.ChatResponse>(
     'chat',
     'send',
     {
       'message': message,
       'timezone': timezone,
+      'history': history,
     },
   );
 }
