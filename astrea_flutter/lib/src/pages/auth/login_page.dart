@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/client_provider.dart';
 import '../../theme/astrea_colors.dart';
@@ -43,6 +44,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _submit() async {
     setState(() => _error = null);
+
+    // Save email for settings display before auth attempt
+    final email = _authController.emailController.text.trim();
+    if (email.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user_email', email);
+    }
 
     if (_authController.currentScreen == EmailFlowScreen.login) {
       await _authController.login();

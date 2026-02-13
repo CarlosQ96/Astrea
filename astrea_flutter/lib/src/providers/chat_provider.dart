@@ -5,6 +5,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import '../services/notification_service.dart';
 import 'client_provider.dart';
 import 'reminders_provider.dart';
+import 'subscription_provider.dart';
 
 /// Represents a chat message (user or AI).
 class ChatMessage {
@@ -160,9 +161,22 @@ List<Map<String, String>> _buildConversationHistory(
   }).toList();
 }
 
+/// Exception thrown when free user exceeds daily message limit.
+class MessageLimitExceededException implements Exception {
+  final int limit;
+  const MessageLimitExceededException(this.limit);
+}
+
 /// Sends a message to the chat endpoint.
 Future<void> sendChatMessage(WidgetRef ref, String message) async {
   if (message.trim().isEmpty) return;
+
+  // Check daily message limit for free users
+  final isPro = ref.read(isProProvider);
+  final allowed = await ref.read(dailyMessageProvider.notifier).tryUseMessage(isPro);
+  if (!allowed) {
+    throw MessageLimitExceededException(freeMessageLimit);
+  }
 
   final client = ref.read(clientProvider);
   final currentMessages = ref.read(chatMessagesProvider);

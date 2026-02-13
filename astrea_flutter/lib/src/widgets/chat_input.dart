@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 
 import '../providers/chat_provider.dart';
 import '../providers/settings_provider.dart';
@@ -26,13 +27,33 @@ class _ChatInputState extends ConsumerState<ChatInput> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final message = _controller.text.trim();
     if (message.isEmpty) return;
 
-    sendChatMessage(ref, message);
-    _controller.clear();
-    _focusNode.requestFocus();
+    try {
+      _controller.clear();
+      _focusNode.requestFocus();
+      await sendChatMessage(ref, message);
+    } on MessageLimitExceededException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'You\'ve used all ${ e.limit} free messages today. Upgrade to Pro for unlimited!',
+          ),
+          action: SnackBarAction(
+            label: 'Upgrade',
+            onPressed: () {
+              try {
+                RevenueCatUI.presentPaywallIfNeeded('Astrea Pro');
+              } catch (_) {}
+            },
+          ),
+          duration: const Duration(seconds: 5),
+        ),
+      );
+    }
   }
 
   void _onTranscription(String text) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../../providers/auth_provider.dart';
 import '../../providers/sync_provider.dart';
@@ -17,12 +18,26 @@ class AuthWrapper extends ConsumerWidget {
 
     // Listen to auth changes and start/stop sync (side effect, not in build)
     ref.listen(authInfoProvider, (previous, next) {
-      next.whenData((info) {
+      next.whenData((info) async {
         if (info != null) {
+          // Identify user to RevenueCat (may fail with test key in release)
+          try {
+            await Purchases.logIn(info.authUserId.toString());
+          } catch (e) {
+            debugPrint('RevenueCat logIn failed: $e');
+          }
+
           ref.read(syncProvider.notifier).startSync();
           // Register FCM token for push notifications
           FcmService.registerToken();
         } else {
+          // Log out of RevenueCat on sign out
+          try {
+            await Purchases.logOut();
+          } catch (e) {
+            debugPrint('RevenueCat logOut failed: $e');
+          }
+
           ref.read(syncProvider.notifier).stopSync();
           // Unregister FCM token on logout
           FcmService.unregisterToken();

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'package:serverpod_auth_idp_flutter/serverpod_auth_idp_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../providers/client_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/subscription_provider.dart';
 import '../../theme/astrea_colors.dart';
 
 /// Settings screen with logout option.
@@ -89,9 +92,41 @@ class _SettingsContentState extends ConsumerState<_SettingsContent> {
 
   @override
   Widget build(BuildContext context) {
+    final isPro = ref.watch(isProProvider);
+
     return ListView(
       children: [
         const SizedBox(height: 16),
+
+        // Subscription section
+        _buildSectionHeader(context, 'Subscription'),
+        ListTile(
+          leading: Icon(
+            Icons.auto_awesome,
+            color: isPro ? AstreaColors.oracleGold : AstreaColors.mist,
+          ),
+          title: Text(isPro ? 'Astrea Pro' : 'Free Plan'),
+          subtitle: Text(
+            isPro ? 'Manage your subscription' : 'Upgrade to Pro',
+          ),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () async {
+            try {
+              if (isPro) {
+                await RevenueCatUI.presentCustomerCenter();
+              } else {
+                await RevenueCatUI.presentPaywallIfNeeded('Astrea Pro');
+              }
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Subscription management unavailable')),
+                );
+              }
+            }
+          },
+        ),
+        const Divider(),
 
         // Account section
         _buildSectionHeader(context, 'Account'),
@@ -196,22 +231,25 @@ class _SettingsContentState extends ConsumerState<_SettingsContent> {
     );
   }
 
-  void _showAccountInfo(BuildContext context) {
+  Future<void> _showAccountInfo(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email') ?? 'Unknown';
+    if (!context.mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: AstreaColors.astralPurple,
         title: const Text('Account'),
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ListTile(
-              leading: Icon(Icons.email_outlined),
-              title: Text('Email'),
-              subtitle: Text('test@astrea.local'),
+              leading: const Icon(Icons.email_outlined),
+              title: const Text('Email'),
+              subtitle: Text(email),
             ),
-            ListTile(
+            const ListTile(
               leading: Icon(Icons.calendar_today_outlined),
               title: Text('Member since'),
               subtitle: Text('January 2026'),

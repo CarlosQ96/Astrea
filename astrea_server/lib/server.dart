@@ -1,7 +1,7 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:mailer/mailer.dart' as mailer;
-import 'package:mailer/smtp_server.dart';
+import 'package:http/http.dart' as http;
 import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
@@ -11,8 +11,8 @@ import 'src/generated/protocol.dart';
 import 'src/web/routes/app_config_route.dart';
 import 'src/web/routes/root.dart';
 
-// SMTP configuration - loaded from passwords
-late SmtpServer _smtpServer;
+// MailerSend HTTP API configuration
+late String _mailersendApiKey;
 late String _fromEmail;
 late String _fromName;
 
@@ -21,41 +21,19 @@ void run(List<String> args) async {
   // Initialize Serverpod and connect it with your generated code.
   final pod = Serverpod(args, Protocol(), Endpoints());
 
-  // Initialize SMTP configuration from passwords or env vars
-  final smtpHost =
-      pod.getPassword('smtpHost') ??
-      Platform.environment['SMTP_HOST'] ??
-      'smtp.mailersend.net';
-  final smtpPort =
-      int.tryParse(
-        pod.getPassword('smtpPort') ??
-            Platform.environment['SMTP_PORT'] ??
-            '587',
-      ) ??
-      587;
-  final smtpUsername =
-      pod.getPassword('smtpUsername') ??
-      Platform.environment['SMTP_USERNAME'] ??
-      '';
-  final smtpPassword =
-      pod.getPassword('smtpPassword') ??
-      Platform.environment['SMTP_PASSWORD'] ??
+  // Initialize MailerSend HTTP API configuration
+  _mailersendApiKey =
+      pod.getPassword('mailersendApiKey') ??
+      Platform.environment['MAILERSEND_API_KEY'] ??
       '';
   _fromEmail =
       pod.getPassword('smtpFromEmail') ??
       Platform.environment['SMTP_FROM_EMAIL'] ??
-      smtpUsername;
+      'MS_oN2rzW@test-p7kx4xw893eg9yjr.mlsender.net';
   _fromName =
       pod.getPassword('smtpFromName') ??
       Platform.environment['SMTP_FROM_NAME'] ??
       'Astrea';
-
-  _smtpServer = SmtpServer(
-    smtpHost,
-    port: smtpPort,
-    username: smtpUsername,
-    password: smtpPassword,
-  );
 
   // Initialize authentication services for the server.
   // Token managers will be used to validate and issue authentication keys,
@@ -129,12 +107,7 @@ Future<void> _sendRegistrationCode(
 }) async {
   session.log('[EmailIdp] Sending registration code to $email');
 
-  final message = mailer.Message()
-    ..from = mailer.Address(_fromEmail, _fromName)
-    ..recipients.add(email)
-    ..subject = 'Your Astrea Verification Code'
-    ..html =
-        '''
+  final htmlContent = '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -149,7 +122,7 @@ Future<void> _sendRegistrationCode(
 </head>
 <body>
   <div class="container">
-    <div class="logo">✨ Astrea</div>
+    <div class="logo">Astrea</div>
     <h2>Welcome to Astrea!</h2>
     <p class="text">Use this code to verify your account:</p>
     <div class="code">$verificationCode</div>
@@ -161,15 +134,15 @@ Future<void> _sendRegistrationCode(
 ''';
 
   try {
-    await mailer.send(message, _smtpServer);
-    session.log('[EmailIdp] Registration code sent successfully to $email');
-  } catch (e) {
-    session.log(
-      '[EmailIdp] Failed to send registration code: $e',
-      level: LogLevel.error,
+    await _sendEmailViaMailerSend(
+      to: email,
+      subject: 'Your Astrea Verification Code',
+      html: htmlContent,
     );
-    // Still log the code for debugging
-    session.log('[EmailIdp] Registration code ($email): $verificationCode');
+    print('[EmailIdp] Registration code sent successfully to $email');
+  } catch (e) {
+    print('[EmailIdp] Failed to send registration code: $e');
+    print('[EmailIdp] Registration code ($email): $verificationCode');
   }
 }
 
@@ -182,12 +155,7 @@ Future<void> _sendPasswordResetCode(
 }) async {
   session.log('[EmailIdp] Sending password reset code to $email');
 
-  final message = mailer.Message()
-    ..from = mailer.Address(_fromEmail, _fromName)
-    ..recipients.add(email)
-    ..subject = 'Reset Your Astrea Password'
-    ..html =
-        '''
+  final htmlContent = '''
 <!DOCTYPE html>
 <html>
 <head>
@@ -202,7 +170,7 @@ Future<void> _sendPasswordResetCode(
 </head>
 <body>
   <div class="container">
-    <div class="logo">✨ Astrea</div>
+    <div class="logo">Astrea</div>
     <h2>Password Reset</h2>
     <p class="text">Use this code to reset your password:</p>
     <div class="code">$verificationCode</div>
@@ -214,14 +182,39 @@ Future<void> _sendPasswordResetCode(
 ''';
 
   try {
-    await mailer.send(message, _smtpServer);
-    session.log('[EmailIdp] Password reset code sent successfully to $email');
-  } catch (e) {
-    session.log(
-      '[EmailIdp] Failed to send password reset code: $e',
-      level: LogLevel.error,
+    await _sendEmailViaMailerSend(
+      to: email,
+      subject: 'Reset Your Astrea Password',
+      html: htmlContent,
     );
-    // Still log the code for debugging
-    session.log('[EmailIdp] Password reset code ($email): $verificationCode');
+    print('[EmailIdp] Password reset code sent successfully to $email');
+  } catch (e) {
+    print('[EmailIdp] Failed to send password reset code: $e');
+    print('[EmailIdp] Password reset code ($email): $verificationCode');
+  }
+}
+
+/// Send email using MailerSend HTTP API (Railway blocks SMTP ports)
+Future<void> _sendEmailViaMailerSend({
+  required String to,
+  required String subject,
+  required String html,
+}) async {
+  final response = await http.post(
+    Uri.parse('https://api.mailersend.com/v1/email'),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $_mailersendApiKey',
+    },
+    body: jsonEncode({
+      'from': {'email': _fromEmail, 'name': _fromName},
+      'to': [{'email': to}],
+      'subject': subject,
+      'html': html,
+    }),
+  );
+
+  if (response.statusCode != 202 && response.statusCode != 200) {
+    throw Exception('MailerSend API error: ${response.statusCode} ${response.body}');
   }
 }

@@ -14,7 +14,7 @@ import 'package:astrea_server/src/generated/protocol.dart';
 /// Run with: dart run bin/seed.dart
 ///
 /// The test user credentials will be:
-///   - Email: test@astrea.local
+///   - Email: carlos096@gmail.com
 ///   - Password: Test123!
 void main(List<String> args) async {
   // Initialize Serverpod in maintenance mode
@@ -60,7 +60,7 @@ void main(List<String> args) async {
     print('✅ Seed completed successfully!');
     print('');
     print('Test user credentials:');
-    print('  Email:    test@astrea.local');
+    print('  Email:    carlos096@gmail.com');
     print('  Password: Test123!');
   } catch (e, stack) {
     print('❌ Seed failed: $e');
@@ -75,7 +75,7 @@ void main(List<String> args) async {
 }
 
 Future<void> _seedTestUser(Session session) async {
-  const email = 'test@astrea.local';
+  const email = 'carlos096@gmail.com';
   const password = 'Test123!';
 
   // Check if user already exists
